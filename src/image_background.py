@@ -142,10 +142,11 @@ def process_one_camera(path_frames, camera_name, max_frames: Optional[int]=None)
 # *************************************************************************************************
 def main():
     # Range of cameras to process
-    c0: int = 1
-    c1: int = 8
+    c0: int
+    c1: int
     # Set maximum frames per camera
-    max_frames: Optional[int] = None
+    max_frames: Optional[int]
+
     # Process command line arguments
     argv: List[str] = sys.argv
     argc: int = len(sys.argv)-1
@@ -161,11 +162,18 @@ python image_backgroud.py c0 c1 mf
     calculate background for cameras numbered [c0, ..., c1]; max_frames
 """
     try:
-        if argc == 1:
+        if argc == 0:
+            c0 = 1
+            c1 = 8
+            max_frames = None
+        elif argc == 1:
+            c0 = 1
+            c1 = 8
             max_frames = int(argv[1])
         elif argc == 2:
             c0 = int(argv[1])
             c1 = int(argv[2])
+            max_frames = None
         elif argc == 3:
             c0 = int(argv[1])
             c1 = int(argv[2])
@@ -173,6 +181,7 @@ python image_backgroud.py c0 c1 mf
         else:
             raise RuntimeError
     except:
+        print(f'Error in arguments for image_background.py.  argc={argc}, argv={argv}.')
         print(usage_str)
         exit()
     print(f'Processing cameras from {c0} to {c1}; max_frames={max_frames}.')
