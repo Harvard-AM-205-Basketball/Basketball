@@ -125,6 +125,8 @@ def main():
         # Save the mean frame
         io.imsave(f'{path}/{camera_name}_mean.png', mean_frame)
         io.imsave(f'{path_background}/{camera_name}_mean.png', mean_frame)
+        # Save mean frame as a numpy matrix
+        np.save('{path_background}/{camera_name}_mean.npy', mean_frame)
         
         # For each pixel, compute the median
         median_frame = calc_median_frame(frames)
@@ -137,6 +139,7 @@ def main():
         # Save the median frame
         io.imsave(f'{path}/{camera_name}_median.png', median_frame)
         io.imsave(f'{path_background}/{camera_name}_median.png', median_frame)
+        np.save('{path_background}/{camera_name}_median.npy', median_frame)
 
 if __name__ == '__main__':
     main()

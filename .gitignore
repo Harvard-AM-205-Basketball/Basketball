@@ -1,6 +1,6 @@
 # Ignore the frames and audio directories
-audio/
-frames/
+audio
+frames
 
 # Ignore image files .png
 *.png
