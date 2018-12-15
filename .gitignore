@@ -1,3 +1,13 @@
+# Ignore the frames and audio directories
+audio/
+frames/
+
+# Ignore image files .png
+*.png
+
+# Ignore audio files .wav
+*.wav
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

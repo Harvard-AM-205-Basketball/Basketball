@@ -20,7 +20,6 @@ def plot_style() -> None:
     """Set plot style for the session."""
     # Set up math plot library to use TeX
     # https://matplotlib.org/users/usetex.html
-    # rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
     plt.rc('text', usetex=True)
     # Set default font size to 20
     mpl.rcParams.update({'font.size': 30})
