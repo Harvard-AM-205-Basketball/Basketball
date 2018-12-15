@@ -90,7 +90,7 @@ def load_frames(path_frames: str, camera_name: str, max_frames: Optional[int]=No
     fname_iter = fnames[0:T]
     if camera_name == 'Camera1':
         fname_iter = tqdm(fname_iter)
-        print(f'Progress Bar for Camera1:')
+        print(f'\nProgress Bar for Camera1:')
     # Iterate over the frames for this camera
     for T, fname in enumerate(fname_iter):
         # Load the RGB image for this frame into the slice for frame T
@@ -108,8 +108,11 @@ def calc_mean_frame(frames) -> np.ndarray:
 def calc_median_frame(frames) -> np.ndarray:
     """Compute the median frame from an array of frames in 8 bit integer format"""
     # For each pixel, compute the mean and median
-    return np.median(frames, axis=0) / 255.0
-    
+    ans = np.zeros(shape=frames.shape[1:4], dtype=np.float32)
+    # Compute the median with the answer saved in-place to out; allows specification of float32 type
+    np.median(frames, axis=0, out=ans)
+    return  ans / 255.0
+
 
 def process_one_camera(path_frames, camera_name, max_frames: Optional[int]=None):
     """Process frames for one camera; inside of for loop for parallelization"""
@@ -151,9 +154,6 @@ def main():
         # Look up the results for this camera from parallel job
         mean_frame, median_frame = background[i]
     
-        # Path with frames for this camera
-        path: str = f'{path_frames}/{camera_name}'
-    
         # Display and save the mean frame
         print(f'Mean Frame for {camera_name}')
         fig = plt.figure(figsize=figsize)
@@ -161,7 +161,7 @@ def main():
         display(fig)
         plt.close(fig)
         # Save the mean frame
-        io.imsave(f'{path}/{camera_name}_mean.png', mean_frame)
+        # io.imsave(f'{path}/{camera_name}_mean.png', mean_frame)
         io.imsave(f'{path_background}/{camera_name}_mean.png', mean_frame)
         # Save mean frame as a numpy matrix
         np.save(f'{path_background}/{camera_name}_mean.npy', mean_frame)
@@ -173,7 +173,7 @@ def main():
         display(fig)
         plt.close(fig)
         # Save the median frame
-        io.imsave(f'{path}/{camera_name}_median.png', median_frame)
+        # io.imsave(f'{path}/{camera_name}_median.png', median_frame)
         io.imsave(f'{path_background}/{camera_name}_median.png', median_frame)
         np.save(f'{path_background}/{camera_name}_median.npy', median_frame)
 
