@@ -6,16 +6,27 @@ image_background.py
 Extract the background from a sequence of frames taken by the same camera.
 Background is inferred as either the mean or median value for each pixel.
 
+Usage:
+python image_background.py 
+    process all cameras, all frames
+python image_background.py 10
+    process all cameras, first 10 frames for each camera only
+python image_backgroud.py c0 c1
+    calculate background for cameras numbered [c0, ..., c1]; all frames
+python image_backgroud.py c0 c1 mf
+    calculate background for cameras numbered [c0, ..., c1]; max_frames
+
 Michael S. Emanuel
 Sat Dec 15 08:48:28 2018
 """
 
+import os
+import re
+import sys
 import numpy as np
 from skimage import io
 from IPython.display import display
 import matplotlib.pyplot as plt
-import os
-import re
 from joblib import Parallel, delayed
 from tqdm import tqdm
 import warnings
@@ -130,12 +141,49 @@ def process_one_camera(path_frames, camera_name, max_frames: Optional[int]=None)
 
 # *************************************************************************************************
 def main():
+    # Range of cameras to process
+    c0: int = 1
+    c1: int = 8
+    # Set maximum frames per camera
+    max_frames: Optional[int] = None
+    # Process command line arguments
+    argv: List[str] = sys.argv
+    argc: int = len(sys.argv)-1
+    usage_str = \
+"""
+python image_background.py 
+    process all cameras, all frames
+python image_background.py 10
+    process all cameras, first 10 frames for each camera only
+python image_backgroud.py c0 c1
+    calculate background for cameras numbered [c0, ..., c1]; all frames
+python image_backgroud.py c0 c1 mf
+    calculate background for cameras numbered [c0, ..., c1]; max_frames
+"""
+    try:
+        if argc == 1:
+            max_frames = int(argv[1])
+        elif argc == 2:
+            c0 = int(argv[1])
+            c1 = int(argv[2])
+        elif argc == 3:
+            c0 = int(argv[1])
+            c1 = int(argv[2])
+            max_frames = int(argv[3])
+        else:
+            raise RuntimeError
+    except:
+        print(usage_str)
+        exit()
+    print(f'Processing cameras from {c0} to {c1}; max_frames={max_frames}.')
+
+
     # Path to frames directory
     path_frames: str = r'../frames'
     # Path to directory of background frames
     path_background: str = r'../frames/Background'
     # List of Camera names
-    camera_names: List[str] = [f'Camera{n}' for n in range_inc(8) if n != 5]
+    camera_names: List[str] = [f'Camera{n}' for n in range_inc(c0, c1) if n != 5]
     # Number of cameras
     camera_count: int = len(camera_names)
     
@@ -146,7 +194,7 @@ def main():
     # https://joblib.readthedocs.io/en/latest/parallel.html
     print(f'Running {camera_count} parallel jobs on threads (1 for each camera)...')
     background = Parallel(n_jobs=camera_count, prefer='threads')(
-        delayed(process_one_camera)(path_frames, camera_name)
+        delayed(process_one_camera)(path_frames, camera_name, max_frames)
         for camera_name in camera_names)
     
     # Save and display the background frames (mean and median)
