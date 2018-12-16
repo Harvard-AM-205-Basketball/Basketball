@@ -149,7 +149,7 @@ def align(wavfile1, wavfile2, fft_bin_size=1024, overlap=0, box_height=512, box_
     # wavfile1 = extract_audio(dir, video1)
     raw_audio1, rate = read_audio(wavfile1)
     print(f'make_horiz_bins on {wavfile1}...')
-    bins_dict1 = make_horiz_bins(raw_audio1[:44100*120], fft_bin_size, overlap, box_height) #bins, overlap, box height
+    bins_dict1 = make_horiz_bins(raw_audio1[:48000*120], fft_bin_size, overlap, box_height) #bins, overlap, box height
     print(f'make_vert_bins on {wavfile1}...')
     boxes1 = make_vert_bins(bins_dict1, box_width)  # box width
     print(f'find_bin_max on {wavfile1}...')
@@ -159,7 +159,7 @@ def align(wavfile1, wavfile2, fft_bin_size=1024, overlap=0, box_height=512, box_
     # wavfile2 = extract_audio(dir, video2)
     raw_audio2, rate = read_audio(wavfile2)
     print(f'make_horiz_bins on {wavfile2}...')
-    bins_dict2 = make_horiz_bins(raw_audio2[:44100*60], fft_bin_size, overlap, box_height)
+    bins_dict2 = make_horiz_bins(raw_audio2[:48000*120], fft_bin_size, overlap, box_height)
     print(f'make_vert_bins on {wavfile2}...')
     boxes2 = make_vert_bins(bins_dict2, box_width)
     print(f'find_bin_max on {wavfile2}...')
@@ -179,6 +179,7 @@ def align(wavfile1, wavfile2, fft_bin_size=1024, overlap=0, box_height=512, box_
         return (0, abs(seconds))
     
 wavfile1 = r'../audio/Camera1.wav'
-wavfile2 = r'../audio/Camera2.wav'
+wavfile2 = r'../audio/Camera3.wav'
 
-gap = align(wavfile1, wavfile2, fft_bin_size=256, box_height=64, box_width=8, samples_per_box=2)
+# gap = align(wavfile1, wavfile2, fft_bin_size=256, box_height=64, box_width=8, samples_per_box=2)
+gap = align(wavfile1, wavfile2)
