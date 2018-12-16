@@ -32,7 +32,7 @@ def read_audio(audio_file):
 
 
 def make_horiz_bins(data, fft_bin_size, overlap, box_height):
-    print(f'make_horiz_bins...')
+    # print(f'make_horiz_bins...')
     horiz_bins = {}
     # process first sample and set matrix height
     sample_data = data[0:fft_bin_size]  # get data for first sample
@@ -48,6 +48,7 @@ def make_horiz_bins(data, fft_bin_size, overlap, box_height):
     # process remainder of samples
     x_coord_counter = 1  # starting at second sample, with x index 1
     for j in tqdm(range(int(fft_bin_size - overlap), len(data), int(fft_bin_size-overlap))):
+    # for j in range(int(fft_bin_size - overlap), len(data), int(fft_bin_size-overlap)):
         sample_data = data[j:j + fft_bin_size]
         if (len(sample_data) == fft_bin_size):
             intensities = fourier(sample_data)
@@ -80,10 +81,10 @@ def fourier(sample):  #, overlap):
 
 
 def make_vert_bins(horiz_bins, box_width):
-    print(f'make_vert_bins...')
+    # print(f'make_vert_bins...')
     boxes = {}
-    for key in horiz_bins.keys():
-        for i in tqdm(range(len(horiz_bins[key]))):
+    for key in tqdm(horiz_bins.keys()):
+        for i in range(len(horiz_bins[key])):
             box_x = horiz_bins[key][i][1] / box_width
             # if boxes.has_key((box_x,key)):
             if (box_x,key) in boxes:
@@ -95,11 +96,10 @@ def make_vert_bins(horiz_bins, box_width):
 
 
 def find_bin_max(boxes, maxes_per_box):
-    print(f'find_bin_max...')
     freqs_dict = {}
-    for key in boxes.keys():
+    for key in tqdm(boxes.keys()):
         max_intensities = [(1,2,3)]
-        for i in tqdm(range(len(boxes[key]))):
+        for i in range(len(boxes[key])):
             if boxes[key][i][0] > min(max_intensities)[0]:
                 if len(max_intensities) < maxes_per_box:  # add if < number of points per box
                     max_intensities.append(boxes[key][i])
@@ -118,7 +118,7 @@ def find_bin_max(boxes, maxes_per_box):
 
 def find_freq_pairs(freqs_dict_orig, freqs_dict_sample):
     time_pairs = []
-    for key in freqs_dict_sample.keys():  # iterate through freqs in sample
+    for key in tqdm(freqs_dict_sample.keys()):  # iterate through freqs in sample
         if key in freqs_dict_orig:  # if same sample occurs in base
             for i in range(len(freqs_dict_sample[key])):  # determine time offset
                 for j in range(len(freqs_dict_orig[key])):
@@ -129,7 +129,8 @@ def find_freq_pairs(freqs_dict_orig, freqs_dict_sample):
 
 def find_delay(time_pairs):
     t_diffs = {}
-    for i in range(len(time_pairs)):
+    for i in tqdm(range(len(time_pairs))):
+    # for i in range(len(time_pairs)):
         delta_t = time_pairs[i][0] - time_pairs[i][1]
         if t_diffs.has_key(delta_t):
             t_diffs[delta_t] += 1
@@ -147,19 +148,27 @@ def align(wavfile1, wavfile2, fft_bin_size=1024, overlap=0, box_height=512, box_
     # Process first file
     # wavfile1 = extract_audio(dir, video1)
     raw_audio1, rate = read_audio(wavfile1)
+    print(f'make_horiz_bins on {wavfile1}...')
     bins_dict1 = make_horiz_bins(raw_audio1[:44100*120], fft_bin_size, overlap, box_height) #bins, overlap, box height
+    print(f'make_vert_bins on {wavfile1}...')
     boxes1 = make_vert_bins(bins_dict1, box_width)  # box width
+    print(f'find_bin_max on {wavfile1}...')
     ft_dict1 = find_bin_max(boxes1, samples_per_box)  # samples per box
 
     # Process second file
     # wavfile2 = extract_audio(dir, video2)
     raw_audio2, rate = read_audio(wavfile2)
+    print(f'make_horiz_bins on {wavfile2}...')
     bins_dict2 = make_horiz_bins(raw_audio2[:44100*60], fft_bin_size, overlap, box_height)
+    print(f'make_vert_bins on {wavfile2}...')
     boxes2 = make_vert_bins(bins_dict2, box_width)
+    print(f'find_bin_max on {wavfile2}...')
     ft_dict2 = find_bin_max(boxes2, samples_per_box)
 
-    # Determie time delay
+    # Determine time delay
+    print(f'find_freq_pairs...')
     pairs = find_freq_pairs(ft_dict1, ft_dict2)
+    print(f'find_delay...')
     delay = find_delay(pairs)
     samples_per_sec = float(rate) / float(fft_bin_size)
     seconds= round(float(delay) / float(samples_per_sec), 4)
@@ -172,4 +181,4 @@ def align(wavfile1, wavfile2, fft_bin_size=1024, overlap=0, box_height=512, box_
 wavfile1 = r'../audio/Camera1.wav'
 wavfile2 = r'../audio/Camera2.wav'
 
-gap = align(wavfile1, wavfile2)
+gap = align(wavfile1, wavfile2, fft_bin_size=256, box_height=64, box_width=8, samples_per_box=2)
