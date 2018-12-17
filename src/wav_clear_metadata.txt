@@ -1,0 +1,1 @@
+ffmpeg -y -i Camera1.wav -map_metadata -1 -codec copy Camera1_out.wav

@@ -19,6 +19,7 @@ from am205_utils import range_inc
 from typing import Tuple, List
 
 
+# *************************************************************************************************
 def load_wave_rate(path: str, camera_name: str) -> Tuple[int, np.ndarray]:
     """Loads one wave file from file path and name; the rate and one array of shape (M, ) of 16 bit integers"""
     # Generate the file name
@@ -41,8 +42,13 @@ def load_wave(path: str, camera_name: str) -> np.ndarray:
     return wav
 
 
+# *************************************************************************************************
 def wav_to_freq(wav: np.ndarray, N: int):
-    """Transform a wave input to sampled frequencies"""
+    """
+    Transform a wave input to sampled frequencies
+    INPUTS:
+    wav: 
+    """
     # https://engineersportal.com/blog/2018/9/13/audio-processing-in-python-part-i-sampling-and-the-fast-fourier-transform
     # Number of windows
     K: int = len(wav) // N
@@ -83,6 +89,7 @@ def plot_spectrum_k(spectrum, k):
     plt.show()
 
 
+# *************************************************************************************************
 def synchronize_spectra(spec_i: np.ndarray, spec_j: np.ndarray, N: int) -> Tuple[int, float]:
     """
     Synchronize two audio streams given their fourier spectra.
@@ -176,28 +183,25 @@ def audio_corr(spec_i, spec_j, lag) -> float:
     return xy / np.sqrt(xx * yy)
 
 
+# *************************************************************************************************
 def make_synch_matrix(spectra, N: int):
     """Build an nxn matrix for joint estimation of synchronization"""
     # Get the number of cameras
     n: int = len(spectra)
     # Initialize nxn matrix of lags
-    # lag_mat_i: np.ndarray = np.zeros((n, n), dtype=np.int32)
-    lag_mat: np.ndarray = np.zeros((n,n), dtype=np.int32)
+    lag_secs: np.ndarray = np.zeros((n,n), dtype=np.float32)
     # Initialize nxn matrix of recovered audio correlation
     corr_mat: np.ndarray = np.zeros((n, n))
-    # Length of each window
-    window_secs: float = N / rate
     
     # Calibrate the lag for each pair of cameras
     for i, spec_i in enumerate(tqdm(spectra)):
         for j, spec_j in enumerate(spectra):
-            lag_ij = synchronize_spectra(spec_i, spec_j)
-            # lag_mat_i[i, j] = lag_ij
-            lag_mat[i, j] = lag_ij * window_secs
-            corr_mat[i, j] = audio_corr(spec_i, spec_j, lag_ij)
+            lag_ij_spec, lag_ij_secs = synchronize_spectra(spec_i, spec_j, N)
+            lag_secs[i, j] = lag_ij_secs
+            corr_mat[i, j] = audio_corr(spec_i, spec_j, lag_ij_spec)
 
     # Return both the synchronization matrix and implied audio correlation matrix
-    return lag_mat, corr_mat
+    return lag_secs, corr_mat
 
 
 def test_synch_matrix():
@@ -253,11 +257,11 @@ def test_synch_matrix():
     msg = 'PASS' if is_ok else 'FAIL'
     print(f'\nTesting make_synch_matrix: maximum error = {max_err:0.3f}')
     print('Recovered Lag Matrix:')
-    print(lag_secs)
+    print(np.around(lag_secs, 2))
     print('Correlation Matrix:')
-    print(corr_mat)
+    print(np.around(corr_mat, 3))
     print(f'*** {msg} ***')
-    return lag_mat, corr_mat
+    return lag_secs, corr_mat
 
 
 # *************************************************************************************************
@@ -268,8 +272,8 @@ path_waves: str = r'../audio'
 rate: int = 48000
 
 # List of Camera names
-# camera_names: List[str] = [f'Camera{n}' for n in range_inc(1, 8) if n != 5]
-camera_names = [f'Camera{n}' for n in range_inc(1, 3)]
+camera_names: List[str] = [f'Camera{n}' for n in range_inc(1, 8) if n != 5]
+# camera_names = [f'Camera{n}' for n in range_inc(1, 3)]
 
 # Number of cameras
 camera_count: int = len(camera_names)
@@ -282,18 +286,39 @@ window_secs: float = N / rate
 # Frequency vector for plots
 freq = rate*np.arange((N))/(2*N);
 
+# Offsets to camera 1 to ~1 sec resolution by listening
+# Two markers
+# (1) "I'm going to check the other cameras" (~22 seconds on Camera1)
+# (2) "Oh, dude!" (~43 seconds on Camera1)
+offsets_camera_1 = np.array([0, 7, 17, 4, 1, 15, 8], dtype=np.float32)
+lag_secs_est = np.zeros((camera_count,camera_count))
+for i in range(camera_count):
+    for j in range(camera_count):
+        lag_secs_est[i,j] = offsets_camera_1[j] - offsets_camera_1[i]
+
+# Starting lags that should produce approximately synchronized audio
+start_lags_secs = np.max(offsets_camera_1) - offsets_camera_1
+start_lags_wav = np.array(rate * start_lags_secs, dtype=np.int32)
+
 # Waves and spectra for all inputs
-waves = list()
-spectra = list()
+waves: List[np.ndarray] = list()
+waves_synch: List[np.ndarray] = list()
+spectra: List[np.ndarray] = list()
+spectra_synch: List[np.ndarray] = list()
+# Generate waves and spectra for all inputs
 for i, camera_name in enumerate(camera_names):
     # Get the sampling rate and wave form of camera i
     rate_i, wav_i = load_wave_rate(path_waves, camera_name)
+    # Shifted version of the wave to be approximately synchronized
+    wav_synch_i = wav_i[start_lags_wav[i]:]
     # Check that the sampling rate matches
     assert rate_i == rate, 'Error: {camera_name} has sample rate {rate_i} != {rate}!'
     # Save the wave form
     waves.append(wav_i)
+    waves_synch.append(wav_synch_i)
     # Extract the Fourier spectrum for this wave
     spectra.append(wav_to_freq(waves[i], N))
+    spectra_synch.append(wav_to_freq(waves_synch[i], N))
 
 # Test synchronization
 test_synchronize_spectra(N)
@@ -301,7 +326,45 @@ test_synchronize_spectra(N)
 # Test the synchronization matrix generation routine
 lag_secs, corr_mat = test_synch_matrix()
 
+# Generate the matrix of of lags and correlations on the original data
+lag_secs_v1, corr_mat_v1 = make_synch_matrix(spectra, N)
 
-# Generate the matrix of of lags and correlations on the real data
-# lag_mat, corr_mat = make_synch_matrix(spectra)
+# Generate lags and correlation on the approximately synchronized data
+lag_secs_synch, corr_mat_synch = make_synch_matrix(spectra_synch, N)
+
+# Generate the recovered lag matrix
+lag_secs = lag_secs_est + lag_secs_synch
+
+# Average the rows to produce a single estimated lag
+lags = np.mean(lag_secs,axis=0)
+lags = lags - np.min(lags)
+
+# Frames per seconds
+fps: int = 30
+# Lag in frames at each camera
+lag_frames = np.array(np.round(lags * fps), dtype=np.int32)
+
+# Display lag and correlation matrices on the original data
+print('\nMatrices Generated with Original Input:')
+print('\nLag Matrix:')
+print(np.around(lag_secs_v1, 2))
+print('\nCorrelation Matrix:')
+print(np.around(corr_mat_v1, 3))
+
+# Display lag and correlation matrices on the pre-synchronized data
+print('\nMatrices Generated with Approximately Synchronized Input:')
+print('Lag Matrix:')
+print(np.around(lag_secs_synch, 2))
+print('\nCorrelation Matrix:')
+print(np.around(corr_mat_synch, 3))
+
+# Recovered lag matrices on original data
+print('\nBest Estimate of Lag Matrix:')
+print(np.around(lag_secs, 2))
+
+# Best estimate of lag at each camera
+print('\nBest Estimate of Lag at Each Camera:')
+print(np.around(lags, 3))
+for i, camera_name in enumerate(camera_names):
+    print(f'Lag on {camera_name} is {lags[i]:0.3f} seconds / {lag_frames[i]} frames')
 
