@@ -156,6 +156,11 @@ def make_court_lines():
     three_point_N = make_arc(basket_xy_N, 21.0, -np.pi + theta, -theta, 360)
     three_point_S = make_arc(basket_xy_S, 21.0, theta, pi - theta, 360)
     
+    # Vertical line under the basket
+    vertical_to_basket = np.array([0.0, 0.0, basket_h])
+    vertical_N = make_line(basket_xy_N, basket_xy_N + vertical_to_basket, step_size)
+    vertical_S = make_line(basket_xy_S, basket_xy_S + vertical_to_basket, step_size)
+    
     # The small white square in the backboard has 
     # https://www.google.com/imgres?imgurl=https://i.pinimg.com/originals/37/15/f7/3715f7d7d509c0ff9b8f9f6d3dd5f15d.jpg&imgrefurl=https://www.pinterest.com/pin/263531015675013403/&h=462&w=500&tbnid=VDOxYRz-f96HcM:&q=basketball+backboard+dimensions&tbnh=160&tbnw=173&usg=AI4_-kR6HhW5heRUfNGcRcWqbUhvRuguPg&vet=12ahUKEwjG1t7_16ffAhXuY98KHSVDDm0Q9QEwAHoECAQQBg..i&docid=3HCf0A11ry3g-M&sa=X&ved=2ahUKEwjG1t7_16ffAhXuY98KHSVDDm0Q9QEwAHoECAQQBg#h=462&imgdii=kW4tKWYY4k45EM:&tbnh=160&tbnw=173&vet=12ahUKEwjG1t7_16ffAhXuY98KHSVDDm0Q9QEwAHoECAQQBg..i&w=500
     # x coordinates +/- 1
@@ -182,7 +187,9 @@ def make_court_lines():
     lines['key_circle_N'] = key_circle_N
     lines['key_circle_S'] = key_circle_S
     lines['three_point_N'] = three_point_N
-    lines['three_point_S'] = three_point_S    
+    lines['three_point_S'] = three_point_S
+    lines['vertical_N'] = vertical_N
+    lines['vertical_S'] = vertical_S
     lines['bb_sq'] = bb_sq
 
     return lines

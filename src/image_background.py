@@ -55,6 +55,7 @@ def load_frame(path: str, fname: str) -> np.ndarray:
     # Convert to an array of floats
     RGB: np.array = np.zeros_like(RGB_i, dtype=np.float32)
     RGB[:,:,:] = RGB_i / 255.0
+    return RGB
 
 
 def frame_names(path_frames: str, camera_name: str) -> List[str]:
