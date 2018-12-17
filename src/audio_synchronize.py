@@ -345,7 +345,10 @@ def main():
     lags = lags - np.min(lags)
     lags_v1 = np.mean(lag_secs_v1, axis=0)
     lags_v1 = lags_v1 - np.min(lags_v1)
-        
+    
+    # First eigenvalue of correlation matrix (closer to camera count is better)
+    corr_eig1 = np.linalg.eig(corr_mat)[0][0]
+    
     # Frames per second
     fps: int = 30
     # Lag in frames at each camera
@@ -353,7 +356,7 @@ def main():
     
     # Display lag and correlation matrices on the original data
     print('\nMatrices Generated with Original Input:')
-    print('\nLag Matrix:')
+    print('Lag Matrix:')
     print(np.around(lag_secs_v1, 2))
     print('\nCorrelation Matrix:')
     print(np.around(corr_mat_v1, 3))
@@ -373,8 +376,10 @@ def main():
     print('\nBest Estimate of Lag at Each Camera:')
     print(np.around(lags, 3))
     for i, camera_name in enumerate(camera_names):
-        print(f'Lag on {camera_name} is {lags[i]:0.3f} seconds / {lag_frames[i]} frames')
+        print(f'Lag on {camera_name} is {lags[i]:6.3f} seconds / {lag_frames[i]:3d} frames')
     
+    # Eigenvalue of correlation
+    print(f'First eigenvalue of correlation matrix: {corr_eig1:5.3f}')
 
 if __name__ == '__main__':
     main()
