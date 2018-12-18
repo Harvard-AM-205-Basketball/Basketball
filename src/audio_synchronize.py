@@ -84,11 +84,13 @@ def wav_to_freq(wav: np.ndarray, M: int, N: int):
 def plot_spectrum_k(spectrum, k):
     """Plot the kth window from the spectrum"""
     fig,ax = plt.subplots(figsize=[12,8])
-    plt.plot(freq, spectrum[k,:], linewidth=4)
+    ax.set_title('Fourier Spectrum')
+    plt.plot(freq, spectrum[k,:], color='b', linewidth=4)
     ax.set_xscale('log')
     plt.ylabel('log(Amplitude)')
     plt.xlabel('Frequency [Hz]')
     plt.show()
+    return fig
 
 
 # *************************************************************************************************

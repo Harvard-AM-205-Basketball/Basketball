@@ -94,6 +94,7 @@ backboard_in_N = court_lines['backboard_in_N']
 rim_N = court_lines['rim_N']
 
 
+# *************************************************************************************************
 def calibrate_cam2():
     """Calibration for camera 2"""
     # Name of this camera
@@ -160,7 +161,7 @@ def calibrate_cam3():
     annotate_frame_line(ax, backboard_in_uv, 'r')
     # Display and save the figure    
     display(fig)
-    fig.savefig(f'../figs/{camera_name}_calibration.png')
+    fig.savefig(f'../figs/{camera_name}_calibration.png', bbox_inches='tight')
     plt.close(fig)
 
 
@@ -198,7 +199,7 @@ def calibrate_cam7():
     annotate_frame_line(ax, backboard_in_uv, 'r')
     # Display and save the figure    
     display(fig)
-    fig.savefig(f'../figs/{camera_name}_calibration.png')
+    fig.savefig(f'../figs/{camera_name}_calibration.png', bbox_inches='tight')
     plt.close(fig)
 
 

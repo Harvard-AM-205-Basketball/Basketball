@@ -275,6 +275,8 @@ def visualize_court(lines):
     ax.set_title('Basketball Court')
     ax.set_xlim(-court_hw-1, court_hw+1)
     ax.set_ylim(-court_hh-1, court_hh+1)
+    ax.set_xticks([-22, 0, 22])
+    ax.set_yticks([-47, 0, 47])
     linewidth=0
     marker='o'
     markersize=1.0
@@ -298,7 +300,10 @@ def visualize_court(lines):
     ax.plot(three_point_N[:,0], three_point_N[:,1], color='r', label='3pt',
             linewidth=linewidth, marker=marker, markersize=markersize)            
     ax.plot(three_point_S[:,0], three_point_S[:,1], color='r', label='3pt',
-            linewidth=linewidth, marker=marker, markersize=markersize)            
+            linewidth=linewidth, marker=marker, markersize=markersize)
+    
+    # Save the figure
+    fig.savefig('../report/figs/court_lines.png', bbox_inches='tight')
 
 # *************************************************************************************************
 # main
