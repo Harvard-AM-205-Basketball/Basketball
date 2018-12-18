@@ -123,7 +123,7 @@ def calibrate_cam2():
     annotate_frame_line(ax, rim_uv, 'r')
     # Display and save the figure    
     display(fig)
-    fig.savefig('../figs/{camera_name}_calibration.png')
+    fig.savefig('../figs/{camera_name}_calibration.png', bbox_inches='tight')
     plt.close(fig)
 
 
@@ -133,7 +133,8 @@ def calibrate_cam3():
     camera_name = 'Camera3'
     
     # Position of camera (adjusted for height of tripod)
-    cam_pos = np.array([22.0, -1.5, 5.2])
+    # cam_pos = np.array([22.0, -1.5, 5.2])
+    cam_pos = np.array([22.0, 0.0, 5.2])
     # Camera 3 is ROUGHLY pointed towards a point 2 feet below the front of the rim
     cam_point = np.array([0.0, 41.0, 8.0])
     # Transform for camera 3 (to pixel space)
@@ -207,4 +208,4 @@ def calibrate_cam7():
 # Run the calibration
 # calibrate_cam2()
 calibrate_cam3()
-calibrate_cam7()
+# calibrate_cam7()

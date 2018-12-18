@@ -18,6 +18,7 @@ import numpy as np
 from numpy import pi
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from IPython.display import display
 from typing import List
 
 # *************************************************************************************************
@@ -32,8 +33,9 @@ mpl.rcParams.update({'font.size': 20})
 
 # Input constants pertaining to the court
 # The width and height of the court in feet
-court_w: float = 42.0
-court_h: float = 94.0
+# Note: these are the dimensions of the MAC at Harvard, which are HIGHLY NONSTANDARD!
+court_w: float = 40.0
+court_h: float = 88.0
 # The width of the key (rectangle in front of the basket, a.k.a. "restricted area" on Wikipedia diagram)
 key_w: float = 12.0
 key_h: float = 19.0
@@ -168,7 +170,7 @@ def make_court_lines():
     # vertical_to_basket = np.array([0.0, 0.0, basket_h])
     
     # The three-point arc
-    theta = np.pi * (20/360)
+    theta = np.pi * (36/360)
     three_point_N = make_arc(basket_xy_N, 21.0, -np.pi + theta, -theta, 360)
     three_point_S = make_arc(basket_xy_S, 21.0, theta, pi - theta, 360)
     
@@ -275,8 +277,8 @@ def visualize_court(lines):
     ax.set_title('Basketball Court')
     ax.set_xlim(-court_hw-1, court_hw+1)
     ax.set_ylim(-court_hh-1, court_hh+1)
-    ax.set_xticks([-22, 0, 22])
-    ax.set_yticks([-47, 0, 47])
+    ax.set_xticks([-20, 0, 20])
+    ax.set_yticks([-44, 0, 44])
     linewidth=0
     marker='o'
     markersize=1.0
@@ -303,7 +305,9 @@ def visualize_court(lines):
             linewidth=linewidth, marker=marker, markersize=markersize)
     
     # Save the figure
+    display(fig)
     fig.savefig('../report/figs/court_lines.png', bbox_inches='tight')
+    plt.close(fig)
 
 # *************************************************************************************************
 # main

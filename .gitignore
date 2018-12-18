@@ -8,6 +8,10 @@ frames
 # Ignore audio files .wav
 *.wav
 
+# Large model files
+*.caffemodel
+*.prototxt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

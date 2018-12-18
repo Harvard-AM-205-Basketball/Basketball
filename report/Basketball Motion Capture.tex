@@ -553,7 +553,19 @@ When we started the project, we had hoped we could automate this process, but do
 processing to extract the pixels corresponding to the landmarks has been too labor intensive for us
 to automate this calculation in the available time.  
 Automating the calibration is one of our top areas where we would like to improve in the future
-if we continued working on this problem.
+if we continued working on this problem.  
+Automating the camera calibration could be a good fit for machine learning or neural network techniques.
+
+These calculations are carried out in the Python file \texttt{camera\_calibration.py}.
+The function \texttt{plot\_frame} creates a plot of a frame with suitable axes in preparation 
+for annotation with pixels at visual landmarks.
+Two utility functions \texttt{annotate\_frame\_line} and \texttt{annotate\_frame\_dots}
+overlay red lines on the images where the landmarks are estimated to be.
+The lines produce better looking charts, but plotting the perimeter can cause artificial 
+lines to appear when matplotlib tries to connect pixel locations that are far off the screen together.
+All calibrations are performed against the median frame so we have a clean image without
+any obstructions for the calibration.
+Each camera has its own calibration function, e.g. \texttt{calibrate\_cam3}.
 
 
 \end{document}
