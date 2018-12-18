@@ -36,21 +36,17 @@ pixel_hh: int = pixel_h // 2
 
 
 # *************************************************************************************************
-def plot_frame(frame_name: str):
+def plot_frame(frame: np.ndarray):
     """Plot a frame in preparation to annotate it"""
-    frame = load_frame(path_frames, frame_name)
+    # frame = load_frame(path_frames, frame_name)
     # Create axes
     fig, ax = plt.subplots(figsize=figsize)
-    # y_ticks = np.array([0, 120, 240, 360, 480, 540, 600, 720, 820, 960, 1080])
-    # y_ticklabels = y_ticks // 10
     ax.set_xlim(0, 1920)
     ax.set_ylim(1080, 0)
     ax.set_xticks(arange_inc(0, 1920, 120))
     ax.set_yticks(arange_inc(0, 1080, 120))
-    # ax.set_yticks(y_ticks)
     ax.set_xticklabels(arange_inc(0, 192, 12))
     ax.set_yticklabels(arange_inc(0, 108, 12))
-    # ax.set_yticklabels(y_ticklabels)
     # ax.grid()
     
     # Add vertical and horizontal lines for the center
@@ -150,8 +146,11 @@ def calibrate_cam3():
     backboard_uv = transform(backboard_N)
     backboard_in_uv = transform(backboard_in_N)   
     
+    # Load the frame
+    frame = load_frame(path_frames, f'{camera_name}_median.png')
+
     # Make the calibration plot
-    fig, ax = plot_frame(f'{camera_name}_median.png')
+    fig, ax = plot_frame(frame)
     # Overlay the pixels
     annotate_frame_dots(ax, perimeter_uv, 'r')
     annotate_frame_line(ax, key_box_uv, 'r')
@@ -207,5 +206,5 @@ def calibrate_cam7():
 # *************************************************************************************************
 # Run the calibration
 # calibrate_cam2()
-calibrate_cam3()
+# calibrate_cam3()
 # calibrate_cam7()

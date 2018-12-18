@@ -7,10 +7,12 @@ import os
 import re
 import numpy as np
 from skimage import io
+import cv2
 import matplotlib.pyplot as plt
-from IPython.display import display
-from image_background import load_frame
-from am205_utils import arange_inc
+# from IPython.display import display
+from image_background import load_frame_i
+from tqdm import tqdm
+from am205_utils import range_inc, arange_inc
 from typing import List
 
 # *************************************************************************************************
@@ -31,7 +33,11 @@ pixel_hh: int = pixel_h // 2
 # Default size for figures to match frames
 figsize=[16.0, 9.0]
 
+# A white frame
+white_frame = np.ones((1080,1920,3), dtype=np.uint8) * 255
 
+
+# *************************************************************************************************
 def plot_frame(frame):
     """Plot a frame in preparation to annotate it"""
     # Create axes
@@ -60,11 +66,17 @@ def frame_names(path_frames: str, camera_name: str) -> List[str]:
     return [fname for fname in fnames if pattern.match(fname) is not None]
 
 
-camera_name = 'Camera3'
+def calc_fg(frame, fgmask):
+    """Apply a mask to a frame to get the foreground"""
+    return cv2.bitwise_and(frame, frame, mask=fgmask)
+
+
+def calc_fgw(frame, fgmask):
+    """Apply a mask to a frame to get the foreground against a white background"""
+    return cv2.bitwise_or(frame, white_frame, mask=255-fgmask)
 
 def save_fg(camera_name: str):
-    frame_bg = load_frame(f'{path_frames_bg}', 'Camera3_median.png')
-    
+    """Save the foregrounds of these frames"""
     # Find all the frames in this directory
     fnames: List[str] = frame_names(path_frames, camera_name)
     # Path with frames for this camera
@@ -72,24 +84,34 @@ def save_fg(camera_name: str):
     # Path for foreground frames
     path_fg: str = f'{path_frames_fg}/{camera_name}'
     
+    # Initialize an opencv background subtractor
+    fgbg = cv2.createBackgroundSubtractorMOG2()
+    
     # Iterate over the frames for this camera
-    for i, fname in enumerate(fnames[0:10]):
+    for i, fname in enumerate(tqdm(fnames)):
         # Load this frame
-        frame = load_frame(path, fname)
+        frame_i = load_frame_i(path, fname)
+        # frame = (frame_i / 255.0).astype(np.float32)
+        # Apply the background subtractor
+        fgmask = fgbg.apply(frame_i)
         # Compute the foreground of the frame
-        frame_fg = frame - frame_bg
+        frame_fg_i = calc_fg(frame_i, fgmask)
         # Name of the foreground frame
         fname_fg = f'{path_fg}/{camera_name}_Foreground{i:05d}.png'
         # Save the foreground
-        io.imsave(fname_fg, frame_fg)
-    
-    # Alternate version with white background
-#        xxx = np.sum(frame_fg * frame_fg, axis=2)
-#        mask = xxx < 0.02
-#        frame_fgw = frame_fg.copy()
-#        frame_fgw[mask] = 1.0
-    
+        io.imsave(fname_fg, frame_fg_i)
 
-#    fig = plot_frame(frame - frame_bg)
-#    display(fig)
-#    plt.close(fig)
+
+# *************************************************************************************************
+def main():
+    # List of Camera names
+    camera_names: List[str] = [f'Camera{n}' for n in range_inc(1, 8) if n != 5]
+
+    # Iterate over all the cameras
+    for camera_name in camera_names:
+        print(f'Extracting foreground for {camera_name}...')
+        save_fg(camera_name)
+
+
+if __name__ == '__main__':
+    main()
