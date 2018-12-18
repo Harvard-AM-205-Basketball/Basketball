@@ -53,6 +53,7 @@ def RHS(pixel_x, pixel_y):
     num_points_y=int(19/0.2+1) # 96 points on other sides
     
     # Pixel x-coords and y-coords of points to be used in least-squares analysis
+    # Must be careful to orient this correctly so each row of RHS corresponds to the right row of coefficient matrix
     xvals=np.concatenate((np.linspace(pixel_x[0],pixel_x[1],num_points_x),np.linspace(pixel_x[1],pixel_x[2],num_points_y),np.linspace(pixel_x[2],pixel_x[3],num_points_x),np.linspace(pixel_x[3],pixel_x[0],num_points_y)))
     yvals=np.concatenate((np.linspace(pixel_y[0],pixel_y[1],num_points_x),np.linspace(pixel_y[1],pixel_y[2],num_points_y),np.linspace(pixel_y[2],pixel_y[3],num_points_x),np.linspace(pixel_y[3],pixel_y[0],num_points_y)))
     
