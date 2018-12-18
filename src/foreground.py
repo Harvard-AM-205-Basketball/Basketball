@@ -11,6 +11,7 @@ import cv2
 import matplotlib.pyplot as plt
 # from IPython.display import display
 from image_background import load_frame_i
+from joblib import Parallel, delayed
 from tqdm import tqdm
 from am205_utils import range_inc, arange_inc
 from typing import List
@@ -106,11 +107,16 @@ def save_fg(camera_name: str):
 def main():
     # List of Camera names
     camera_names: List[str] = [f'Camera{n}' for n in range_inc(1, 8) if n != 5]
+    # Number of cameras
+    camera_count: int = len(camera_names)
 
     # Iterate over all the cameras
-    for camera_name in camera_names:
-        print(f'Extracting foreground for {camera_name}...')
-        save_fg(camera_name)
+    # for camera_name in camera_names:
+    #    print(f'Extracting foreground for {camera_name}...')
+    #     save_fg(camera_name)
+    Parallel(n_jobs=camera_count, prefer='threads')(
+        delayed(save_fg)(camera_name)
+        for camera_name in camera_names)
 
 
 if __name__ == '__main__':
