@@ -88,6 +88,8 @@ def make_court_lines():
     """Generate world coordinates of the lines painted red on the basketball court."""
     # Set the step size for line painting
     step_size: float = 0.20
+    # https://en.wikipedia.org/wiki/Basketball_court
+    # https://www.sportsknowhow.com/basketball/dimensions/high-school-basketball-court-dimensions.html
     
     # The main perimeter of the court is just a big rectangle spanning the four corners
     court_NW_x: float = -court_hw
@@ -141,36 +143,87 @@ def make_court_lines():
     # Build "southern" key box by symmetry with "northern" one
     key_box_S = key_box_N.copy()
     key_box_S[:,1] = -key_box_N[:,1]
-        
+    
     # The semi-circle on top of the key
     key_circle_radius = key_w / 2.0
     key_circle_center_N = np.array([0.0, +court_hh - key_h, 0.0])
     key_circle_center_S = np.array([0.0, -court_hh + key_h, 0.0])
     key_circle_N = make_circle(key_circle_center_N, key_circle_radius, 360)
     key_circle_S = make_circle(key_circle_center_S, key_circle_radius, 360)
+
+    # The y coordinates of both baskets; they are 43 feet from the center
+    # (the height of a half court is 47 feet, and the basket is 4 feet inside the back line)
+    basket_y_N: float = +court_hh - basket_x
+    basket_y_S: float = -court_hh + basket_x
+    
+    # The 3D coordinates of the basket (where the rim backplate is mounted to the backboard)
+    basket_N = np.array([0.0, basket_y_N, basket_h])
+    basket_S = np.array([0.0, basket_y_S, basket_h])
+
+    # The point underneath the basket on the floor
+    basket_xy_N = np.array([0.0, basket_y_N, 0.0])
+    basket_xy_S = np.array([0.0, basket_y_S, 0.0])
+
+    # 3D vector with discplacement from floor to basket
+    # vertical_to_basket = np.array([0.0, 0.0, basket_h])
     
     # The three-point arc
     theta = np.pi * (20/360)
-    basket_xy_N = np.array([0.0, +court_hh - basket_x, 0.0])
-    basket_xy_S = np.array([0.0, -court_hh + basket_x, 0.0])
     three_point_N = make_arc(basket_xy_N, 21.0, -np.pi + theta, -theta, 360)
     three_point_S = make_arc(basket_xy_S, 21.0, theta, pi - theta, 360)
     
-    # Vertical line under the basket
-    vertical_to_basket = np.array([0.0, 0.0, basket_h])
-    vertical_N = make_line(basket_xy_N, basket_xy_N + vertical_to_basket, step_size)
-    vertical_S = make_line(basket_xy_S, basket_xy_S + vertical_to_basket, step_size)
+    # Vertical line under the basket    
+    vertical_N = make_line(basket_xy_N, basket_N, step_size)
+    vertical_S = make_line(basket_xy_S, basket_S, step_size)
+
+    # See this image for the layout of the backboard
+    # https://en.wikipedia.org/wiki/Backboard_(basketball)
+    # https://www.google.com/imgres?imgurl=https://i.pinimg.com/originals/37/15/f7/3715f7d7d509c0ff9b8f9f6d3dd5f15d.jpg&imgrefurl=https://www.pinterest.com/pin/263531015675013403/&h=462&w=500&tbnid=VDOxYRz-f96HcM:&q=basketball+backboard+dimensions&tbnh=160&tbnw=173&usg=AI4_-kR6HhW5heRUfNGcRcWqbUhvRuguPg&vet=12ahUKEwjG1t7_16ffAhXuY98KHSVDDm0Q9QEwAHoECAQQBg..i&docid=3HCf0A11ry3g-M&sa=X&ved=2ahUKEwjG1t7_16ffAhXuY98KHSVDDm0Q9QEwAHoECAQQBg#h=462&imgdii=kW4tKWYY4k45EM:&tbnh=160&tbnw=173&vet=12ahUKEwjG1t7_16ffAhXuY98KHSVDDm0Q9QEwAHoECAQQBg..i&w=500
+    
+    # The large white square in the backboard has
+    # x coordinates +/- 3 feet (it is 72 inches wide and symmetrical)
+    # y coordinates 43 (47 feet half court minus 4 feet forward)
+    # z coordinates 9.5 to 13.0 feet; it is 42 inches high and starts 6 inches under the rim)
+    backboard_BL = np.array([-3.0, basket_y_N, basket_h - 0.5])
+    backboard_BR = np.array([+3.0, basket_y_N, basket_h - 0.5])
+    backboard_TL = np.array([-3.0, basket_y_N, basket_h + 3.0])
+    backboard_TR = np.array([+3.0, basket_y_N, basket_h + 3.0])
+    # Wrap up the four corners into a rectangle
+    backboard_N = make_polygon([backboard_BL, backboard_TL, backboard_TR, backboard_BR], 0.25)
+    # Build "southern" backboard square backboard_in by symmetry with "northern" one
+    backboard_S = backboard_N.copy()
+    backboard_S[:,1] = -backboard_N[:,1]    
     
     # The small white square in the backboard has 
-    # https://www.google.com/imgres?imgurl=https://i.pinimg.com/originals/37/15/f7/3715f7d7d509c0ff9b8f9f6d3dd5f15d.jpg&imgrefurl=https://www.pinterest.com/pin/263531015675013403/&h=462&w=500&tbnid=VDOxYRz-f96HcM:&q=basketball+backboard+dimensions&tbnh=160&tbnw=173&usg=AI4_-kR6HhW5heRUfNGcRcWqbUhvRuguPg&vet=12ahUKEwjG1t7_16ffAhXuY98KHSVDDm0Q9QEwAHoECAQQBg..i&docid=3HCf0A11ry3g-M&sa=X&ved=2ahUKEwjG1t7_16ffAhXuY98KHSVDDm0Q9QEwAHoECAQQBg#h=462&imgdii=kW4tKWYY4k45EM:&tbnh=160&tbnw=173&vet=12ahUKEwjG1t7_16ffAhXuY98KHSVDDm0Q9QEwAHoECAQQBg..i&w=500
-    # x coordinates +/- 1
-    # y coordaintes 43 (47 feet half court minus 4 feet forward)
-    # z coordinates 10 to 11.5 and 
-    bb_sq_BL = np.array([-1.0, court_hh - basket_x, basket_h])
-    bb_sq_BR = np.array([+1.0, court_hh - basket_x, basket_h])
-    bb_sq_TL = np.array([-1.0, court_hh - basket_x, basket_h + 1.5])
-    bb_sq_TR = np.array([+1.0, court_hh - basket_x, basket_h + 1.5])
-    bb_sq = make_polygon([bb_sq_BL, bb_sq_TL, bb_sq_TR, bb_sq_BR], 0.25)
+    # x coordinates +/- 1 foot (it is 24 inches wide and symmetrical)
+    # y coordinates 43 (47 feet half court minus 4 feet forward)
+    # z coordinates 10 to 11.5 (the rim is 10.0 feet high and the box is 18 inches tall)
+    backboard_in_BL = np.array([-1.0, basket_y_N, basket_h])
+    backboard_in_BR = np.array([+1.0, basket_y_N, basket_h])
+    backboard_in_TL = np.array([-1.0, basket_y_N, basket_h + 1.5])
+    backboard_in_TR = np.array([+1.0, basket_y_N, basket_h + 1.5])
+    # Wrap up the four corners into a rectangle
+    backboard_in_N = make_polygon([backboard_in_BL, backboard_in_TL, backboard_in_TR, backboard_in_BR], 0.25)
+    # Build "southern" backboard square backboard_in by symmetry with "northern" one
+    backboard_in_S = backboard_in_N.copy()
+    backboard_in_S[:,1] = -backboard_in_N[:,1]    
+
+    # The rim
+    # https://www.livestrong.com/article/405043-basketball-rim-measurements/
+    # A basketball hoop is circular in shape and has an inside diameter of exactly 18 inches from edge to edge. 
+    # There should be 6 inches of separation from the ring to the basket. 
+
+    # The diameter is 18 inches so the radius is 9 inches = 0.75 feet
+    rim_radius = 0.75
+    
+    # x coordinate of center: 0
+    # y coordinate of center: 42.5 feet = basket_y_N - 1.25: 
+    # the offset to center is: 6 inches offset + 9 inch radius = 15 inches = 1.25 feet
+    # z coordinate: 10.0 feet = basket_h
+    rim_center_N = np.array([0.0, basket_y_N - 1.25, basket_h])
+    rim_center_S = np.array([0.0, basket_y_S + 1.25, basket_h])
+    rim_N = make_circle(rim_center_N, rim_radius, 180)
+    rim_S = make_circle(rim_center_S, rim_radius, 180)
 
     # All the lines on the floor
     floor = np.vstack([perimeter, half_court, center_circle, key_box_N, key_box_S,
@@ -190,7 +243,12 @@ def make_court_lines():
     lines['three_point_S'] = three_point_S
     lines['vertical_N'] = vertical_N
     lines['vertical_S'] = vertical_S
-    lines['bb_sq'] = bb_sq
+    lines['backboard_N'] = backboard_N
+    lines['backboard_S'] = backboard_S
+    lines['backboard_in_N'] = backboard_in_N
+    lines['backboard_in_S'] = backboard_in_S
+    lines['rim_N'] = rim_N
+    lines['rim_S'] = rim_S
 
     return lines
 

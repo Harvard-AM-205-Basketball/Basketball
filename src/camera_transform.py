@@ -141,54 +141,91 @@ def make_transform_uv(cam_pos: np.ndarray, cam_point: np.ndarray, zoom: float):
     return transform_uv
 
 
-def annotate_frame(frame_name: str, pixels: np.ndarray, color: str):
+def plot_frame(frame_name: str):
+    """Plot a frame in preparation to annotate it"""
+    frame = load_frame(path_frames, frame_name)
+    # Create axes
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.set_xlim(0, 1920)
+    ax.set_ylim(1080, 0)
+    ax.set_xticks(arange_inc(0, 1920, 120))
+    ax.set_yticks(arange_inc(0, 1080, 120))
+    ax.set_xticklabels(arange_inc(0, 192, 12))
+    ax.set_yticklabels(arange_inc(0, 108, 12))
+    # Display the image
+    ax.imshow(frame)
+    # Return the figure and axes
+    return fig, ax
+
+
+def annotate_frame_line(ax, pixels: np.ndarray, color: str):
     """Annotate a frame with a batch of pixels"""
-    pass
+    # Plot the pixels on the axis
+    ax.plot(pixels[:,0], pixels[:,1], color=color, linewidth=1.0)
+
+
+def annotate_frame_dots(ax, pixels: np.ndarray, color: str):
+    """Annotate a frame with a batch of pixels"""
+    # Get u and v from pixels so we can filter them to [0, 1920) x [0, 1080)
+    u = pixels[:,0]
+    v = pixels[:,1]
+    # The filter
+    mask = (0 <= u) & (u < pixel_w) & (0 <= v) & (v < pixel_h)
+    # Plot the pixels on the axis
+    ax.plot(pixels[mask,0], pixels[mask,1], color=color, linewidth=0, marker='o', markersize=1)
+
 
 # *************************************************************************************************
-# All the lines on the floor
+# Visual features for calibration
 court_lines = make_court_lines()
-vertical_N = court_lines['vertical_N']
 perimeter = court_lines['perimeter']
-key_box = court_lines['key_box_N']
+key_box_N = court_lines['key_box_N']
+key_circle_N = court_lines['key_circle_N']
+vertical_N = court_lines['vertical_N']
+backboard_N = court_lines['backboard_N']
+backboard_in_N = court_lines['backboard_in_N']
 
-# Position of camera (adjusted for height of tripod)
-cam_pos = np.array([22,-1.5, 5.2])
-
-# Camera 3 is ROUGHLY pointed towards a point 2 feet below the front of the rim
-cam_point = np.array([0.0, 41.0, 8.0])
-
-# Transform for camera 3 (to pixel space)
-transform = make_transform_uv(cam_pos, cam_point, 1.0)
-
-# Apply the transform for camera 3 to various shapes of interest
-# Convert the xy positions to uv pixel locations
-key_box_uv = transform(key_box)
-
-# Plot the vertical line under the north basket
-vertical_N_uv = transform(vertical_N)
-# Plot the perimeter
-perimeter_uv = transform(perimeter)
-
-# Demo frame
-median_frame = load_frame(path_frames, 'Camera3_median.png')
-# Create axes
-fig, ax = plt.subplots(figsize=figsize)
-ax.set_xlim(0, 1920)
-ax.set_ylim(1080, 0)
-ax.set_xticks(arange_inc(0, 1920, 120))
-ax.set_yticks(arange_inc(0, 1080, 120))
-ax.set_xticklabels(arange_inc(0, 192, 12))
-ax.set_yticklabels(arange_inc(0, 108, 12))
-# Display the image
-ax.imshow(median_frame)
-# Overlay the pixels
-# ax.plot(key_box_uv[:,0], key_box[:,1], color='r')
-# ax.plot(origin_uv[:,0], origin_uv[:,1], color='r')
-ax.plot(vertical_N_uv[:,0], vertical_N_uv[:,1], color='r')
-ax.plot(perimeter_uv[:,0], perimeter_uv[:,1], color='r')
-display(fig)
-plt.close(fig)
+def calibrate_cam3():
+    """Calibration for camera 3"""
+    # Name of this camera
+    camera_name = 'Camera3'
+    
+    # Position of camera (adjusted for height of tripod)
+    cam_pos = np.array([22,-1.5, 5.2])
+    # Camera 3 is ROUGHLY pointed towards a point 2 feet below the front of the rim
+    cam_point = np.array([0.0, 41.0, 8.0])
+    # Transform for camera 3 (to pixel space)
+    transform = make_transform_uv(cam_pos, cam_point, 1.0)
+    
+    # Apply the transform for camera 3 to various shapes of interest
+    # Convert the xy positions to uv pixel locations
+    perimeter_uv = transform(perimeter)
+    key_box_uv = transform(key_box_N)
+    key_circle_uv = transform(key_circle_N)
+    vertical_uv = transform(vertical_N)
+    backboard_uv = transform(backboard_N)
+    backboard_in_uv = transform(backboard_in_N)   
+    
+    # Make the calibration plot
+    fig, ax = plot_frame(f'{camera_name}_median.png')
+    # Overlay the pixels
+    annotate_frame_line(ax, perimeter_uv, 'r')
+    annotate_frame_line(ax, key_box_uv, 'r')
+    annotate_frame_line(ax, key_circle_uv, 'r')    
+    annotate_frame_line(ax, vertical_uv, 'r')
+    annotate_frame_line(ax, backboard_uv, 'r')
+    annotate_frame_line(ax, backboard_in_uv, 'r')
+    # Display and save the figure    
+    display(fig)
+    fig.savefig('../figs/{camera_name}_calibration.png')
+    plt.close(fig)
 
 
 # *************************************************************************************************
+# Run the calibration
+calibrate_cam3()
+
+
+# *************************************************************************************************
+
+
