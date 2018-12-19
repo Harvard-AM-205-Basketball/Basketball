@@ -70,9 +70,12 @@ def calc_fg(frame, fgmask):
     return cv2.bitwise_and(frame, frame, mask=fgmask)
 
 
-def calc_fgw(frame, fgmask):
+def calc_fgw(frame_fg):
     """Apply a mask to a frame to get the foreground against a white background"""
-    return cv2.bitwise_or(frame, white_frame, mask=255-fgmask)
+    mask = np.sum(frame_fg, axis=2)==0
+    frame_fgw = frame_fg.copy()
+    frame_fgw[mask,:] = 255
+    return frame_fgw
 
 
 def save_fg(camera_name: str):

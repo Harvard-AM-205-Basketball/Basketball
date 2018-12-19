@@ -230,8 +230,9 @@ The software environment for all code on this project was Python 3.6 or 3.7.
 Different machines used by members of our team included a Mac laptop, a Windows Surface, 
 a Windows PC, and a powerful server running Ubuntu Linux.
 
-\section{Estimating the Background Image}
-A common technique in image processing is Foreground Detection, which is equivalent to estimating the background and subtracting it out.
+\newpage
+\section{Estimating the Background and Foreground Image}
+A common technique in image processing is Foreground Detection, which is related to estimating the background and subtracting it out.
 \footnote{\href{https://en.wikipedia.org/wiki/Foreground_detection}{Foreground Detection}}
 We had two reasons to get the background image at each camera.  
 First, to aid in foreground detection which we could use as input to the part of the system that would track the ball
@@ -259,6 +260,48 @@ Here are examples of the mean and median background image:
 This camera gave a good example of why we went to the trouble of estimating the median.
 The mean is visibly blurry (especially around the ``H'' logo on the bleachers) and median is considerably more crisp.
 
+We ended up devoting a substantial amount of effort to extract the foreground of each frame.
+One member of our team spent the better part of a week trying to get this to work.
+The reason we devoted so much effort to this was mostly because we thought we would need it
+to track the pixel location of the ball on the different cameras.  
+We ended up with 4,391 synchronized video frames on each of our 7 cameras for a grand total of
+30.737 frames, so we had a strong preference for fully automated processing of anything pertaining to frames.
+The software tracking system we had hoped to use for this purpose was unable to track the ball in the original video footage.
+Our hope had been that if we extracted the foreground, the frames with just the foreground would allow the ball to be tracked.
+Unfortunately the foreground estimation proved to be a rabbit hole for us.
+
+Initial attempts were based on comparing each frame to the median and setting a tolerance threshold.
+If a pixel was different from the background by more than this amount, then it was declared to be foreground.
+This did not work at all, and in retrospect it was too simplistic.
+Eventually we did some more research into this and it turns out that both foreground detection
+is a well studied problem.  In the end, we did succeed, after many hours of work, in automatically 
+extracting decent quality foreground images from all the frames.  
+It was somewhat of a Pyrrhic victory because it consumed so much of our time that we didn't
+really have much time left to see if we could use them for automated ball tracking.
+However, because the foreground detection problem is intrinsically interesting,
+and because we spent quite a lot of effort on this portion of the project, here are a few of the highlights.
+We used the \texttt{OpenCV} computer vision library.  
+This is an excellent tool that performs many standard computer vision tasks.  
+It is written in C++ and also available with convenient bindings to Python.
+OpenCV includes a handy gadget called a \texttt{BackgroundSubtractor}.
+The file \texttt{image\_foreground.py} uses this OpenCV class to generate foregrounds
+for all of our frames.  This job ran in approximately one hour on a high end desktop PC.
+Here is one example frame, taken from Camera 3 at frame 2316 (1:17 into the game):
+\begin{figure}[H]
+\center
+\includegraphics[width=0.80\textwidth]{Camera3_SyncFrame02316.png}
+\includegraphics[width=0.80\textwidth]{Camera3_Foreground02316.png}
+\end{figure}
+
+As we can see, the OpenCV library did an excellent job of picking just a small number 
+of pixels that were legitimately in the foreground.  Crucially, it has identified the ball.
+Had we realized how hard it was to do this by hand, and how easy it was in OpenCV
+(well once you get up to speed on OpenCV, which is nontrivial...)
+we might have run this and then written a ``basketball detector'' by hand to track the ball.
+
+\textbf{Lesson Learned: Use OpenCV instead of hand-rolled functions for computer vision tasks!}
+
+\newpage
 \section{Synchronizing the Frames Using Audio Feeds}
 In order to assemble a 3D trajectory of the ball by combining frames from different cameras,
 it is necessary first to synchronize the feeds.  
@@ -384,8 +427,8 @@ and the ball is close to its apex.  This is particularly clear on the first thre
 if you start at the top left and read them like a page in a book (right, then down).
 We claim this is evidence that the audio synchronization was accurate to the nearest frame!
 
+\newpage
 \section{Transforming 3D World Coordinates to Pixel Locations}
-
 \subsection{Conventions}
 Coordinates in the world frame will be denoted as $(U, V, W)$. Coordinates in the camera frame will be denoted as $(X, Y, Z)$. 
 Coordinates in the 2D image plane will be denoted as $(x, y)$. Pixel coordinates will be denoted as $(u, v)$. \\
@@ -395,9 +438,9 @@ The court has the following dimensions and coordinate system
 Note that we are centering the world coordinate system at the center of the court and that the $w$ axis points towards the ceiling.
 
 \begin{figure}[H]
-\includegraphics[scale=0.25]{Court_Diagram}
 \centering
-\caption{A diagram of the MAC basketball court with dimensions}
+\includegraphics[width=0.90\textwidth]{Court_Diagram}
+\caption*{A diagram of the MAC basketball court with dimensions}
 \end{figure}
 
 For the camera frame, we will adopt the convention that the $Z$ axis points in the direction that the camera is pointing. 
@@ -406,7 +449,7 @@ See the following diagram, where the rectangular prism represents the camera:
 \begin{figure}[H]
 \includegraphics[scale=0.1]{Camera_Coordinates}
 \centering
-\caption{A hand sketched representation of the camera coordinate system}
+\caption*{A hand sketched representation of the camera coordinate system}
 \end{figure}
 
 The image coordinate system has the origin at the center of the image, with the $x$-axis pointing to the right and the $y$-axis pointing up (i.e. standard conventions). 
@@ -444,7 +487,7 @@ This ensures that the $X$ and $Z$ axes are orthogonal (have a dot product of 0).
 \begin{figure}[H]
 \includegraphics[scale=0.6]{Rotation_Diagram}
 \centering
-\caption{Why the camera $X$ axis is parallel to the ground}
+\caption*{Why the camera $X$ axis is parallel to the ground}
 \end{figure}
 
 Finally, to get the $Y$-axis, we first normalize the $X$ and $Z$ axes, and then take the cross product of $X$ and $Z$. 
@@ -468,9 +511,9 @@ Note: Some sources like to use ``homogeneous coordinates'' so that we can write 
  Then $(x', y', z')=(Xf, Yf, Z)$ and $(x, y)=(\frac{x'}{z'}, \frac{y'}{z'})$. 
 
 \begin{figure}[H]
-\includegraphics[scale=0.6]{Image_Plane}
+\includegraphics[width=0.8\textwidth]{Image_Plane}
 \centering
-\caption{Projection onto image plane}
+\caption*{Projection onto image plane}
 \end{figure}
 
 \subsection{Image to Pixel}
@@ -490,7 +533,7 @@ v&=\frac{x}{s_{x}}+960
 \begin{figure}[H]
 \includegraphics[scale=0.3]{Pixel_Coordinates}
 \centering
-\caption{Pixel coordinates vs. image coordinates}
+\caption*{Pixel coordinates vs. image coordinates}
 \end{figure}
 
 \subsection{Extrinsic vs. Intrinsic Parameters}
@@ -570,6 +613,7 @@ This function is a ``factory'' that makes a pair of transformers returning $(x, 
 \url{http://www.cs.ucf.edu/~mtappen/cap5415/lecs/lec19.pdf} \\
 \url{https://www.cse.unr.edu/~bebis/CS791E/Notes/CameraParameters.pdf} \\
 
+\newpage
 \section{Visual Calibration of Camera Position and Orientation}
 It is possible to confirm a camera calibration visually.  
 The idea is straightforward, though as usual on this challenge, the devil is in the details.
@@ -640,9 +684,14 @@ All calibrations are performed against the median frame so we have a clean image
 any obstructions for the calibration.
 Each camera has its own calibration function, e.g. \texttt{calibrate\_cam3}.
 
-Here are the visual calibrations for the other cameras:
+Here are the visual calibrations for all the other cameras.
+Cameras are shown in symmetrical pairs to aid comprehension
+(hence the repetition of our favorite camera, Camera 3).
+\newpage
 \begin{figure}[H]
 \center
+\includegraphics[width=1.00\textwidth]{Camera3_calibration.png}
+\caption*{Camera 3 Visual Calibration}
 \includegraphics[width=1.00\textwidth]{Camera7_calibration.png}
 \caption*{Camera 7 Visual Calibration}
 \end{figure}
@@ -668,7 +717,13 @@ Here are the visual calibrations for the other cameras:
 \caption*{Camera 1 Visual Calibration}
 \end{figure}
 
+\newpage
 \section{Tracking The Ball in Pixel Space}
 
+\newpage
+\section{Tracking The Ball in World Space}
+
+\newpage
+\section{Conclusions}
 
 \end{document}
