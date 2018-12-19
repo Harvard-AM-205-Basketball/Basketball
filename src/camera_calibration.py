@@ -110,7 +110,8 @@ def calibrate_cam3():
     # Camera 3 is ROUGHLY pointed towards a point 2 feet below the front of the rim
     cam_point = np.array([0.0, 38.3, 8.0])
     # Transform for camera 3 (to pixel space)
-    transform = make_transform_uv(cam_pos, cam_point, 1.00)
+    # transform = make_transform_uv(cam_pos, cam_point, 1.00)
+    
     
     # Apply the transform for camera 3 to various shapes of interest
     # Convert the xy positions to uv pixel locations
@@ -396,9 +397,9 @@ def calibrate_cam1():
 # *************************************************************************************************
 # Run the calibration
 calibrate_cam3()
-calibrate_cam7()
-calibrate_cam2()
-calibrate_cam8()
-calibrate_cam4()
-calibrate_cam6()
-calibrate_cam1()
+#    calibrate_cam7()
+#    calibrate_cam2()
+#    calibrate_cam8()
+#    calibrate_cam4()
+#    calibrate_cam6()
+#    calibrate_cam1()

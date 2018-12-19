@@ -226,9 +226,35 @@ sharing this folder will exhaust your space quota and leave you temporarily unab
 We are still trying to figure out if there is a better way to work collaboratively on large data files
 and make them available to the public in the interests of replicable science.
 
+\newpage
+\subsection{Software Environment and Code Files}
 The software environment for all code on this project was Python 3.6 or 3.7.
 Different machines used by members of our team included a Mac laptop, a Windows Surface, 
-a Windows PC, and a powerful server running Ubuntu Linux.
+a Windows PC, and a powerful server running Ubuntu Linux.  
+Below is a list in dependency order of source code files (including scripts) used in this project.
+
+\textbf{Source Files for Basketball Tracking:}
+\begin{itemize}
+\item \texttt{make\_links\_windows.bat} - create symbolic links in the repository to the Dropbox folder with large files
+\item \texttt{audio\_synchronize.py} - synchronize movie files (MP4, AVI, etc) by aligning their WAV audio tracks
+\item \texttt{am205\_utils.py} - utility functions for AM 205
+\item \texttt{image\_utils.py} - utility functions used to handle image frames
+\item \texttt{synchronize\_frames.py} - generate synchronized frames using the lags produced from audio synchronization
+\item \texttt{synchronize\_video.bat} - combine the synchronized frames back into synchronized movies using \texttt{ffmpeg}
+\item \texttt{visualize\_sync\_frames.py} - combine 6 frames to one image to demonstrate that they're synchronized
+\item \texttt{basketball\_court.py} -- visualize and compute (x, y, z) coordinates of landmarks on 
+basketball courts including the perimeter, key, three point line, etc.
+\item \texttt{camera\_transform.py} -- create transformation functions for a camera mapping between world coordinates
+of objects they see and pixels they produce
+\item \texttt{camera\_calibration.py} -- solve for the placement and orientation of cameras by visually aligning landmarks
+on the basketball court with their transformed pixel locations
+\item \texttt{pixel\_size.py} -- numerically solve for the intrinsic pixel sizes of these cameras using landmarks
+on the basketball court and least squares fitting
+\item \texttt{image\_background.py} -- compute the mean and median frame for each camera
+\item \texttt{image\_foreground.py} -- extract the foreground from each frame using \texttt{OpenCV}
+\item \texttt{track\_ball.py} -- track the position of the ball in world coordinates based on pixel coordinates
+at multiple cameras.
+\end{itemize}
 
 \newpage
 \section{Estimating the Background and Foreground Image}

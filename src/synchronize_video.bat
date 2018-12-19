@@ -2,9 +2,7 @@ REM Start times for cameras 1, 2, 3, 4, 6, 7, 8
 REM [17.658, 10.274,  0.   , 14.112, 16.152,  1.104,  9.298]
 REM round these off to nearest multiple of 1 / 30 to match frames @ 30 FPS
 
-d:
-
-
+D:
 REM this was the simple idea but it didn'e replicate the exact number of frames
 REM cd d:\Dropbox\Harvard-AM-205-Basketball\Video\04_Trimmed_MPG
 REM ffmpeg -i Camera1.mpg -ss 00:17.666 -t 02:26.333 -c copy Camera1_sync.mpg

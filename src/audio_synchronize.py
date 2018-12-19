@@ -15,7 +15,7 @@ from scipy.io.wavfile import read as read_wav
 from scipy.signal import convolve
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-from am205_utils import range_inc
+from utils import range_inc
 from typing import Tuple, List
 
 
@@ -417,4 +417,5 @@ def main():
     print(f'First eigenvalue of correlation matrix: {corr_eig1:5.3f}')
 
 if __name__ == '__main__':
-    main()
+    # main()
+    pass
