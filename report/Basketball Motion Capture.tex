@@ -717,8 +717,95 @@ Cameras are shown in symmetrical pairs to aid comprehension
 \caption*{Camera 1 Visual Calibration}
 \end{figure}
 
+Broadly speaking, all of these except camera 1 might be termed ``satisfactory''
+for the task of tracking a basketball in flight.  
+As mentioned above, Camera 1 is not parallel to the XY plane in world space,
+so it requires an additional degree of freedom that we did not incorporate into
+our modeling apparatus.
+
+Here is a brief outline of two strategies that could be used to improve these camera
+calibrations on a project with more available time.  The first step would be to 
+follow a similar strategy to the one used to calibrate the pixel sizes $s_x$ and $s_y$.
+That is, use MS paint or a similar tool to estimate the pixel positions of a series of 
+known landmarks in the frame.  For our go-to example of Camera 3, 
+we can locate the four corners of the key; the four corners of the backboard
+(outside); and the four corners of the backboard (inside).  
+We can also locate the northwest corner of the court.
+This would give us 13 constraints to solve an equation with 5 unknowns:
+the x, y, z coordinates of the camera in the world plane; 
+and the angles $\theta$ and $\phi$ describing its orientation.
+This equation could then be solved numerically as a least squares error minimization.
+The cameras located further away were zoomed, but all the nearby cameras had no zoom.
+A fully automated calibration strategy would be to tag the pixels corresponding to the landmarks
+painted in the visual calibration.  
+The numerical optimization would then aim to minimize the difference between the tagged
+and predicted pixels.
+
 \newpage
 \section{Tracking The Ball in Pixel Space}
+This project has proven to be considerably more difficult than we originally planned in several phases
+including manipulating the video, synchronizing the audio, and calibrating the camera positions and orientations.   
+All of these obstacles proved surmountable, albeit at the cost of time that was budgeted for the later stages of the project.
+The one obstacle that has so far completely stumped us is \textbf{efficiently} 
+tracking the position of the basketball in the frames where it is visible, 
+i.e. extracting the $(u, v)$ pixel coordinates of its center (and possibly the radius as an additional quantity).
+William has labored mightily trying a number of different approaches on this.
+The software he has used in his lab has failed completely on this problem.
+While we don't know exactly why, a good surmise is that the ball is moving too much between frames.
+These systems are typically used in conjunction with high end, 
+laboratory photographic equipment capable of shooting video at much higher frame rates.
+
+An ironic aspect of this challenge is that tracking the motion of the ball is a trivially easy task for a human.  
+It's an excellent example of the kind of ``natural perception'' tasks at which humans excel in comparison to computers.
+As an aside, we are in no way claiming that a properly calibrated 
+computer vision system cannot track the position of the ball on these frames.
+We're only saying that as a team of people with general scientific training and no
+particular background in computer vision, this was a task that looked easy from afar
+and proved very hard for us at least.
+
+With the benefit of hindsight, we made a tactical error when we 
+set the video recording mode to full HD (1920x1080).  
+When we made this decision, we did not realize it would have the effect of
+reducing the frame rate from 30 FPS to 15 FPS.  
+To add insult to injury, while the images nominally have a high resolution,
+the optics and sensors in this camera are not nearly good enough to render 
+the scene crisply, so the extra pixels are effectively wasted anyway.
+This leads us another\\
+\textbf{Lesson Learned: Don't trade frame rate for resolution}.
+
+After we failed with the software in William's lab, we researched possible library
+solutions for object tracking.  The strongest possibility appeared to be OpenCV,
+which offers 8 different algorithmic implementations of object trackers.
+We spent approximately four hours setting this up and experimenting with all 8 algorithms.  
+The Python file \texttt{object\_track\_cv} is not a useful finished product in our code base.
+It's the test harness we used to interactively experiment with 
+the different object trackers in OpenCV.  
+The OpenCV front end is very impressive and easy to use.  
+The program above allows you to select an initial bounding box using the mouse,
+and the OpenCV tries to track the object.  
+When it notes a detection failure, it waits until a polling interval is elapsed 
+(e.g. every 1 or 5 seconds) and then asks on the terminal 
+whether the ball is present on the screen.  
+If yes, the user enters a new bounding box and the process continues.
+This program would have offered a very handy semi-automated way to quickly
+annotate the ball position, if any of the OpenCV image trackers 
+worked even a little in this scenario.  
+Watching them flail would have been funny if it wasn't such a hassle.
+The interactive experience of trying these different detectors and seeing their
+failure modes was useful in developing an intuition for how these systems work.
+They do much better with slowly moving objects, i.e. objects 
+where most of the pixels move just a little bit from one frame to the next.
+Our best guess is that if we had been able to film at a high frame rate like 60 FPS,
+one or more of the OpenCV tools would have worked at least in semiautomatic
+if not in full automatic mode.
+
+After exhausting over a week attempting to implement an automated workflow to 
+annotate the pixel coordinates of the ball, we abandoned the effort approximately
+36 hours before the project deadline and devised a new plan to prove out as much
+of our remaining plans as possible in the remaining time.
+We opted to hand annotate the center of the ball over periods of interest.
+In particular, we identified several shot attempts, and annotated the frames
+containing these attempts.
 
 \newpage
 \section{Tracking The Ball in World Space}
