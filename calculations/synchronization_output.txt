@@ -64,3 +64,6 @@ Lag on Camera7 is 16.554 seconds / 497 frames
 Lag on Camera8 is 8.360  seconds / 251 frames
 
 First eigenvalue of correlation matrix: 4.742
+
+Start times to resample:
+[17.658, 10.274,  0.   , 14.112, 16.152,  1.104,  9.298]

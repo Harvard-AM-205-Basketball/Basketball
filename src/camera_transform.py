@@ -16,22 +16,19 @@ Mon Dec 17 12:54:44 2018
 
 import numpy as np
 
-
 # *************************************************************************************************
 # Focal length (0.024147 ft is from manufacturer), changes with zoom
 focus: float = 0.024147
 
-# Pixel size
+# Pixel size - obtained by running pixel.py
 # pixel_size: float = 1.166E-5
-# pixel_size_x: float = pixel_size
-# pixel_size_y: float = pixel_size
-
 pixel_size_x: float = 1.196e-5
 pixel_size_y: float = 1.141e-5
 
 # Pixel count in the image
 pixel_w: int = 1920
 pixel_h: int = 1080
+
 # Half size of pixels used frequently
 pixel_hw: int = pixel_w // 2
 pixel_hh: int = pixel_h // 2
@@ -56,6 +53,27 @@ def cam2pix(object_xy: np.ndarray):
     return np.stack([u, v]).T
 
 
+def cam2pix_f(object_xy: np.ndarray):
+    """
+    Convert the position of an object from 
+    (x,y) coordinates in the camera frame, to
+    (u,v) pixel locations
+    This version is UNROUNDED, i.e. u and v are both floats
+    This makes it differentiable and suitable for numerical methods.
+    """
+    # Reshape the object if necessary so it's an Nx2 matrix
+    object_xy = object_xy.reshape((-1,2))
+    # Extract x and y vectors from object
+    x = object_xy[:, 0]
+    y = object_xy[:, 1]
+    # Convert these to pixels using the pixel sizes and counts
+    u = +x / pixel_size_x + pixel_hw
+    v = -y / pixel_size_y + pixel_hh
+    # Return these as an Nx2 array
+    return np.stack([u, v]).T
+
+
+# *************************************************************************************************
 def make_transforms(cam_pos: np.ndarray, cam_point: np.ndarray, zoom: float):
     """
     Make two coordinate transform for a camera
@@ -75,11 +93,9 @@ def make_transforms(cam_pos: np.ndarray, cam_point: np.ndarray, zoom: float):
     
     # Camera z-axis in world coords is the difference between 
     # where the camera is pointing and where it is located
-    # z = np.array([-22, 42.5, 2.8]) # 2 worked well
     z = cam_point - cam_pos
     
     # Camera x-axis in world coords
-    # x=np.array([42.5,22,0])
     x = np.array([z[1], -z[0], 0.0])
     
     # APPLY TRANSFORMATIONS:
@@ -116,14 +132,35 @@ def make_transforms(cam_pos: np.ndarray, cam_point: np.ndarray, zoom: float):
         """The transform to pixel space"""
         return cam2pix(transform_xy(object_pos))
     
+    # The transform function to (u, v) pixel locations
+    def transform_fg(object_pos):
+        """The transform to pixel space"""
+        return cam2pix_f(transform_xy(object_pos))
+    
     # Return the assembled transform
-    return transform_xy, transform_uv
+    return transform_xy, transform_uv, transform_fg
+
+
+# *************************************************************************************************
+def make_transform_xy(cam_pos: np.ndarray, cam_point: np.ndarray, zoom: float):
+    """Wrapper for make_transforms; return only the pixel transform"""
+    # Dispatch call to make_transforms to create both xy and pixel transforms
+    transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
+    # Return only the xy transform
+    return transform_xy
 
 
 def make_transform_uv(cam_pos: np.ndarray, cam_point: np.ndarray, zoom: float):
     """Wrapper for make_transforms; return only the pixel transform"""
     # Dispatch call to make_transforms to create both xy and pixel transforms
-    transform_xy, transform_uv = make_transforms(cam_pos, cam_point, zoom)
+    transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
     # Return only the pixel transform
     return transform_uv
 
+
+def make_transform_fg(cam_pos: np.ndarray, cam_point: np.ndarray, zoom: float):
+    """Wrapper for make_transforms; return only the pixel transform"""
+    # Dispatch call to make_transforms to create both xy and pixel transforms
+    transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
+    # Return only the UNROUNDED (floating point) pixel transform
+    return transform_fg
