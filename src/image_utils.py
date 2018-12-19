@@ -22,6 +22,8 @@ from typing import List, Optional
 # global variables
 # Path with synchronized frames
 path_frames = r'../sync_frames'
+# Monitor DPI (dots per inch)
+dpi: int = 100
 
 
 # *************************************************************************************************
@@ -123,12 +125,27 @@ def make_tableau(n: int):
     return combine_frames(frames)
 
 
-def plot_tableau(combined_frame):
-    # figsize=[19.2, 10.8]
-    fig, ax = plt.subplots(figsize=[3*10.8,2*19.2], dpi=100, frameon=False)
-    ax.imshow(combined_frame)
-    ax.axis('off')
-    return fig
+def plot_tableau(frame: np.ndarray):
+    """Plot a frame in preparation to annotate it"""
+    # Create a figure with NO FRAME
+    # https://stackoverflow.com/questions/8218608/scipy-savefig-without-frames-axes-only-content
+    fig = plt.figure(figsize=[19.2*2, 10.8*3], dpi=dpi, frameon=False)
+    # Create an axis that is the WHOLE FIGURE
+    ax = plt.Axes(fig, [0., 0., 1., 1.])
+    # Turn off display of axes (ticks etc)
+    ax.set_axis_off()
+    # Now add this axis to the figure
+    fig.add_axes(ax)
+    # Display the frame as an image
+    ax.imshow(frame)
+    # Add separators between camera views
+    linewidth=4.0
+    color='r'
+    ax.axhline(1080*1, linewidth=linewidth, color=color)
+    ax.axhline(1080*2, linewidth=linewidth, color=color)
+    ax.axvline(1920, linewidth=linewidth, color=color)
+    # Return the figure and axes
+    return fig, ax
 
 
 def fig2img(fig):

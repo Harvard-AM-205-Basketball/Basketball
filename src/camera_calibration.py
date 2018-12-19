@@ -1,6 +1,9 @@
 """
-camera_transform.py
+Harvard IACS Applied Math 205
+Project: Basketball
 
+camera_calibration.py
+infer the location and orientation of cameras by visual calibration.
 
 Michael S. Emanuel
 Mon Dec 17 21:38:55 2018

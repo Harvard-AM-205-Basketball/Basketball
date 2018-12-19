@@ -141,7 +141,7 @@ def make_difference_func(ball_pix: np.ndarray, mask: np.ndarray):
     return difference_func
 
 
-def make_objective_func(ball_pix: np.ndarray, weight: np.ndarray):
+def make_objective_func(ball_pix: np.ndarray, mask: np.ndarray, weight: np.ndarray):
     """Make an optimization objective function"""
     
     # The objective function is the sum of squares difference with these weights
@@ -202,7 +202,7 @@ def plot_tableau(frame: np.ndarray):
     return fig, ax
 
 
-def frame_overlay(frames, j, calc_pix_all):
+def frame_overlay(frames: List[np.ndarray], calc_pix_all: np.ndarray, ball_pos: np.ndarray, j: int):
     """Overlay frame j with the ball"""
     # The selected frame
     frame = frames[j]
@@ -247,7 +247,7 @@ def frames_overlay(n: int, ball_pos, mask):
     for j, plot_j in enumerate(mask):
         # If this frame was included in the calibration, overlay the ball position
         if plot_j:
-            fig, ax = frame_overlay(frames, j, calc_pix_all)
+            fig, ax = frame_overlay(frames, ball_pos, calc_pix_all, j)
         # Otherwise just plot the frame without any annotation
         else:
             fig, ax = plot_frame(frames[j])
@@ -288,6 +288,7 @@ def track_frame(n: int):
     """Track the ball in one frame"""
     # Get the mask
     mask = mask_mat[n]
+    # Don't use camera 1 - not a good angle
     mask[0] = False
     # Get the ball pixels
     ball_pix = ball_pix_mat[n][mask]
