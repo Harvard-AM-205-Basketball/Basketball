@@ -1,17 +1,20 @@
-\BOOKMARK [1][-]{section.1}{1 Abstract}{}% 1
-\BOOKMARK [1][-]{section.2}{2 Motivation}{}% 2
-\BOOKMARK [1][-]{section.3}{3 Experimental Set-Up}{}% 3
-\BOOKMARK [1][-]{section.4}{4 Video Processing}{}% 4
-\BOOKMARK [1][-]{section.5}{5 Finding Our Code on GitHub and Data Files on Dropbox}{}% 5
-\BOOKMARK [1][-]{section.6}{6 Estimating the Background Image}{}% 6
-\BOOKMARK [1][-]{section.7}{7 Synchronizing the Frames Using Audio Feeds}{}% 7
-\BOOKMARK [1][-]{section.8}{8 Transforming 3D World Coordinates to Pixel Locations}{}% 8
-\BOOKMARK [2][-]{subsection.8.1}{8.1 Conventions}{section.8}% 9
-\BOOKMARK [2][-]{subsection.8.2}{8.2 World to Camera}{section.8}% 10
-\BOOKMARK [2][-]{subsection.8.3}{8.3 Camera to Image}{section.8}% 11
-\BOOKMARK [2][-]{subsection.8.4}{8.4 Image to Pixel}{section.8}% 12
-\BOOKMARK [2][-]{subsection.8.5}{8.5 Extrinsic vs. Intrinsic Parameters}{section.8}% 13
-\BOOKMARK [2][-]{subsection.8.6}{8.6 An example, using Camera 3}{section.8}% 14
-\BOOKMARK [2][-]{subsection.8.7}{8.7 Python Implementation of Coordinate Transforms}{section.8}% 15
-\BOOKMARK [2][-]{subsection.8.8}{8.8 Resources}{section.8}% 16
-\BOOKMARK [1][-]{section.9}{9 Visual Calibration of Camera Position and Orientation}{}% 17
+\BOOKMARK [1][-]{section.1}{1 Introduction}{}% 1
+\BOOKMARK [2][-]{subsection.1.1}{1.1 Abstract}{section.1}% 2
+\BOOKMARK [2][-]{subsection.1.2}{1.2 Motivation}{section.1}% 3
+\BOOKMARK [1][-]{section.2}{2 Data Acquisition and Practical Details}{}% 4
+\BOOKMARK [2][-]{subsection.2.1}{2.1 Experimental Set-Up}{section.2}% 5
+\BOOKMARK [2][-]{subsection.2.2}{2.2 Video Processing}{section.2}% 6
+\BOOKMARK [2][-]{subsection.2.3}{2.3 Accessing our Code and Data: GitHub and DropBox}{section.2}% 7
+\BOOKMARK [1][-]{section.3}{3 Estimating the Background Image}{}% 8
+\BOOKMARK [1][-]{section.4}{4 Synchronizing the Frames Using Audio Feeds}{}% 9
+\BOOKMARK [1][-]{section.5}{5 Transforming 3D World Coordinates to Pixel Locations}{}% 10
+\BOOKMARK [2][-]{subsection.5.1}{5.1 Conventions}{section.5}% 11
+\BOOKMARK [2][-]{subsection.5.2}{5.2 World to Camera}{section.5}% 12
+\BOOKMARK [2][-]{subsection.5.3}{5.3 Camera to Image}{section.5}% 13
+\BOOKMARK [2][-]{subsection.5.4}{5.4 Image to Pixel}{section.5}% 14
+\BOOKMARK [2][-]{subsection.5.5}{5.5 Extrinsic vs. Intrinsic Parameters}{section.5}% 15
+\BOOKMARK [2][-]{subsection.5.6}{5.6 An example, using Camera 3}{section.5}% 16
+\BOOKMARK [2][-]{subsection.5.7}{5.7 Python Implementation of Coordinate Transforms}{section.5}% 17
+\BOOKMARK [2][-]{subsection.5.8}{5.8 Resources}{section.5}% 18
+\BOOKMARK [1][-]{section.6}{6 Visual Calibration of Camera Position and Orientation}{}% 19
+\BOOKMARK [1][-]{section.7}{7 Tracking The Ball in Pixel Space}{}% 20

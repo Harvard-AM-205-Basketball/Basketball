@@ -19,8 +19,6 @@ from typing import List
 # *************************************************************************************************
 # Path for frames
 path_frames = r'../sync_frames'
-# Path for background frames
-path_frames_bg = r'../frames/Background'
 # Path for foreround frames
 path_frames_fg = r'../foreground'
 
@@ -76,6 +74,7 @@ def calc_fgw(frame, fgmask):
     """Apply a mask to a frame to get the foreground against a white background"""
     return cv2.bitwise_or(frame, white_frame, mask=255-fgmask)
 
+
 def save_fg(camera_name: str):
     """Save the foregrounds of these frames"""
     # Find all the frames in this directory
@@ -109,15 +108,12 @@ def main():
     camera_names: List[str] = [f'Camera{n}' for n in range_inc(1, 8) if n != 5]
     # Number of cameras
     camera_count: int = len(camera_names)
-
     # Iterate over all the cameras
-    # for camera_name in camera_names:
-    #    print(f'Extracting foreground for {camera_name}...')
-    #     save_fg(camera_name)
     Parallel(n_jobs=camera_count, prefer='threads')(
         delayed(save_fg)(camera_name)
         for camera_name in camera_names)
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    pass

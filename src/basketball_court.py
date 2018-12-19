@@ -19,6 +19,7 @@ from numpy import pi
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from IPython.display import display
+from am205_utils import arange_inc
 from typing import List
 
 # *************************************************************************************************
@@ -274,11 +275,16 @@ def visualize_court(lines):
 
     # Plot the lines
     fig, ax = plt.subplots(figsize=[court_w / 8, court_h / 8])
-    ax.set_title('Basketball Court')
+    ax.set_title('MAC Basketball Court')
     ax.set_xlim(-court_hw-1, court_hw+1)
     ax.set_ylim(-court_hh-1, court_hh+1)
-    ax.set_xticks([-20, 0, 20])
-    ax.set_yticks([-44, 0, 44])
+    ax.set_xticks(arange_inc(-20, 20, 2))
+    ax.set_yticks(arange_inc(-44, 44, 2))
+    xticklabels = [f'{x:d}' if int(x) in [-20, 0, 20] else '' for x in ax.get_xticks()]
+    yticklabels = [f'{y:d}' if int(y) in [-44, 0, 44] else '' for y in ax.get_yticks()]
+    ax.set_xticklabels(xticklabels)
+    ax.set_yticklabels(yticklabels)
+    ax.grid()
     linewidth=0
     marker='o'
     markersize=1.0
@@ -303,6 +309,16 @@ def visualize_court(lines):
             linewidth=linewidth, marker=marker, markersize=markersize)            
     ax.plot(three_point_S[:,0], three_point_S[:,1], color='r', label='3pt',
             linewidth=linewidth, marker=marker, markersize=markersize)
+    
+    # Add the 8 cameras
+    ax.plot(0, +court_hh, 'o', color='b', markersize=10)
+    ax.plot(+court_hw, +court_hh, 'o', color='b', markersize=10)
+    ax.plot(+court_hw, 0, 'o', color='b', markersize=10)
+    ax.plot(+court_hw, -court_hh, 'o', color='b', markersize=10)
+    ax.plot(0, -court_hh, 'o', color='b', markersize=10)
+    ax.plot(-court_hw, -court_hh, 'o', color='b', markersize=10)
+    ax.plot(-court_hw, 0, 'o', color='b', markersize=10)
+    ax.plot(-court_hw, court_hh, 'o', color='b', markersize=10)
     
     # Save the figure
     display(fig)

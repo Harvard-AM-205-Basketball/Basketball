@@ -76,15 +76,17 @@ Nicholas Beasley\\
 William C. Burke\\
 Michael S. Emanuel}
 
-\section{Abstract}
-The goal of this project was to infer the position of a basketball in three dimensional space during a live game by obtaining multiple video recordings.
+\section{Introduction}
+\subsection{Abstract}
+The goal of this project was to infer the position of a basketball in three dimensional space during a live game by 
+integrating information obtained from multiple video recordings.
 In particular, the intuition was that with enough cameras, it should be possible to construct an over-determined system and perform 
 a least squares or similar style estimation of the position of the ball that is in best agreement with the video frames.
-Steps we hoped to achieve in this project included 
+Steps we planned to take to achieve our goal included:
 \begin{itemize}
-\item obtaining video in an experiment at the MAC; processing the video; 
-\item synchronizing the video based on the audio from each clip; 
-\item mapping from 3D world coordinates to 2D pixel locations on each camera;
+\item obtaining video in an experiment at the MAC; processing the video
+\item synchronizing the video based on the audio from each clip
+\item mapping from 3D world coordinates to 2D pixel locations on each camera
 \item tracking the ball in 2D space on each camera; 
 \item inferring the position of the ball in 3D space based on its pixel location on each camera.
 \item simulating the path of the ball while in flight using an extended Kalman filter and the equations of motion
@@ -93,12 +95,12 @@ Steps we hoped to achieve in this project included
 
 When we articulated this project, we recognized that it was ambitious and that it might not be possible to do everything we wanted to
 in the time available.  It has turned out that a number of the steps, while conceptually straightforward, have proven to be quite
-challenging and consumed far more time than we had budgeted.  We are going to present below everything that we were able
+challenging and consumed far more time than we had budgeted.  We present below everything that we were able
 to accomplish and hope for the forbearance of readers who are familiar with the slings and arrows of working on demanding problems.
 
-\section{Motivation}
+\subsection{Motivation}
 Autonomous robots including autonomous vehicles are a field of major research activity and commercial interest.
-One of the major open challenges in designing these robots is sensing their environments.
+One of the major challenges in designing these robots is sensing their environments; this is also an active research area.
 Autonomous driving systems on the road today have expensive and complex sensing systems
 that often include multiple cameras and LIDAR.
 This was one motivation behind the idea of attempting to solve a problem of perceiving the motion
@@ -109,20 +111,33 @@ The NBA had \$14 billion in revenues in 2017.  According to Wikipedia  it is the
 and has the highest participation.   
 \footnote{\href{https://en.wikipedia.org/wiki/Sports_in_the_United_States}{sports in the united states}}
 A practical system that would enable accurate 3D coordinate positions of the ball during live games might
-attract considerable interest, both for entertainment and sports analytics.
+attract considerable interest, both for entertainment and sports analytics.  
+Ironically, the entertainment aspect of this project may be its most practical application.
+The video game NBA 2K17 sold over 8.5 million copies, making it the top sports game for
+Take Two Interactive with sales of \$348 million.
+\footnote{
+\href{https://venturebeat.com/2017/08/02/with-8-5-million-sales-nba-2k17-is-more-dominant-than-the-warriors/}{NBA 2K17}}
+What does this have to do with an overly ambitious AM 205 project?
+One of the top selling points of these games is verisimilitude.  
+If a team could come up with an efficient procedure to harvest high resolution 3D coordinates of the ball and players
+from HDTV footage of NBA and NCAA games, this data could potentially be used to improve these games.
+One immediate use case would in training the AI agents that control the actions of players not played by people.
 
-\section{Experimental Set-Up}
+\newpage
+\section{Data Acquisition and Practical Details}
+\subsection{Experimental Set-Up}
 We purchased eight identical video cameras from Amazon and compatible tripods.
 We selected the lowest cost camera we could find that supported full HD video.
 This camera
 \footnote{
 \href{https://www.amazon.com/Camcorder-SOSUN-Rotatable-Batteries-301S-Plus/dp/B07CZ3WXYX/ref=sr_1_1?ie=UTF8&qid=1545104673&sr=8-1&keywords=sosun}
 {Sosun HDTV video camera}}
-does not offer world beating performance, but at \$64 it is very affordable for what it can do.
+does not offer world beating performance, but at \$64 it is very affordable for what it can do: 
+either full HD video (1920x1080) at 15 FPS, or ``regular'' HD (1080x720) at 30 FPS.
 The tripod 
 \footnote{\href{https://www.amazon.com/gp/product/B005KP473Q/ref=oh_aui_detailpage_o04_s01?ie=UTF8&psc=1}
 {Amazon Basics tripod}}
-is also very affordable at \$21.
+is also very affordable at \$21 and of decent quality.
 We used 64 GB SDXC cards that cost \$15.50 each.
 \footnote{
 \href{https://www.amazon.com/gp/product/B00CXI1EI4/ref=oh_aui_detailpage_o06_s00?ie=UTF8&psc=1}
@@ -136,10 +151,11 @@ Here is a diagram of a basketball court shown in 3D perspective:
 \end{figure}
 
 We intended to place eight cameras around the court, numbered from 1 to 8 as follows.  
-Camera 1 was placed at ``12 o'clock'' on the diagram, i.e. behind the clear backboard at the top of the picture
+Camera 1 was placed at ``12 o'clock'' on the diagram, i.e. behind the clear backboard at the top of the picture.
 Camera 2 was placed at the top right of the diagram, in the corner.
 Camera 3 was placed on the right side of the midcourt line.
-The camera numbers continue increase moving clockwise around the court.
+The camera numbers continue increase moving clockwise around the court, with cameras 4 through 8 at
+the bottom right; behind the near basket; bottom left; center left; and top left, respectively.
 
 We performed this experiment at the Malkin Athletic Center (``MAC'') on Friday, November 16.  
 We used a ladder and electrical tape to mount Camera 1 behind one of backboard.
@@ -153,8 +169,16 @@ The game lasted approximately 2:26.  This might not sound like much, but it amou
 This data set was already at a size where it put significant strain on our computational resources,
 particularly those of us working on laptops.
 
-\newpage
-\section{Video Processing}
+\textbf{Lesson Learned: when in doubt, take a measurement}\\
+We brought a large tape measure with us to the gym, but in the bustle of setting up 
+all our cameras, we neglected to confirm the measurements of the court,
+naively assuming that the might Harvard would have regulation NCAA basketball courts.
+Bad idea... after wasting over three hours failing to visually calibrate our cameras,
+we realized that the measurements we had been using were wrong.
+After we went back measured the court dimensions, the visual calibration
+was quicker and more accurate.
+
+\subsection{Video Processing}
 This project posed numerous practical challenges.  
 Two of them were editing the video files we obtained from the cameras 
 and sharing files that are far too large for GitHub with across our team.
@@ -171,8 +195,16 @@ These files were very roughly time synchronized, to a resolution of around 10 se
 To complete the initial batch of processing, we extracted frames from these videos
 using \href{https://www.ffmpeg.org/}{ffmpeg}, which is an excellent free open source tool.
 
-\section{Finding Our Code on GitHub and Data Files on Dropbox}
-All of our code for this project is available here on a public GitHub repository:
+\textbf{Lesson Learned: Use ffpmg for Simple Video Manipulation}\\
+We only realized that ffmpg has all the features we needed after we had already laboriously
+edited our video by hand in Adobe Premier.  
+All we really needed to do here was merge and trim feeds; convert from AVI to MP4;
+and extract frames and audio (WAV) from the MP4.
+These operations are very efficient in ffmpg once you learn how to make commands.
+They can also be scripted and reused.
+
+\subsection{Accessing our Code and Data: GitHub and DropBox}
+All of our code for this project is available here on a public GitHub repository:\\
 \href{https://github.com/Harvard-AM-205-Basketball/Basketball}{Harvard-AM-205-Basketball}.
 While we will follow all submission instructions and upload individual Python files with this report,
 the most efficient way get all of our code with the correct directory layout is to clone the repository: \\
@@ -190,7 +222,7 @@ Dropbox no longer supports public folders, so the only way we know to share our 
 is to send an invitation to access the shared folder.  We are of course happy to do this.
 Please be warned though that Dropbox counts the entire size of a shared folder against the
 space quota of everyone who has access to it.  So if you are on a free Dropbox plan, 
-sharing this folder will exhaust your space quote and leave you temporarily unable to upload files.
+sharing this folder will exhaust your space quota and leave you temporarily unable to upload files.
 We are still trying to figure out if there is a better way to work collaboratively on large data files
 and make them available to the public in the interests of replicable science.
 
@@ -214,7 +246,7 @@ The challenge is that loading all the frames for even one camera
 consumes a prodigious amount of memory.  
 While it's possible to compute the mean of all the frames by a doing a single pass through them
 and accumulating the sum, we are unaware of a similar trick for the median.
-In the end we got this clean but resource intensive implementation to run on an Ubuntu server that has 256 GB of ram.  
+In the end we got this clean but resource intensive implementation to run on an Ubuntu server that has 256 GB of RAM.  
 This is a good example of the kinds of challenges that cropped up somewhat unexpectedly and consumed large amounts of time.
 
 Here are examples of the mean and median background image:
@@ -230,7 +262,7 @@ The mean is visibly blurry (especially around the ``H'' logo on the bleachers) a
 \section{Synchronizing the Frames Using Audio Feeds}
 In order to assemble a 3D trajectory of the ball by combining frames from different cameras,
 it is necessary first to synchronize the feeds.  
-This is a recurring problem in videography with multiple cameras and well studied.
+This is a recurring and well studied problem in videography with multiple cameras.
 Almost everyone faced with this synchronization problem tries to use the audio 
 rather than the video feeds to synchronize the cameras.  There are two reasons for this choice.
 First, the temporal resolution of sound is much sharper than the temporal resolution of video frames.
@@ -245,16 +277,18 @@ that there would be a ``drop in'' library solution that would take two WAV files
 between them.  An extensive online search proved otherwise.  
 We did identify one library called \href{https://github.com/allisonnicoledeal/VideoSync}{VideoSync}.
 A half day was spent trying to get this code to run on our input files.
-Unfortunately we just could not get it to run to completion.  The program would run, but would hang.
+Unfortunately we just could not get it to run to completion.  
+The program would run without throwing an exception, but would hang.
 After modifying it to add progress bars and running on the monster Linux server we still had no luck.
-Apparently this problem is solved in practice by highly trained video editors using expensive software,
-i.e. people do it by hand.
+Apparently this problem is usually solved in practice by highly trained video editors 
+using expensive software, i.e. people do it by hand.
 
 The idea behind synchronizing two audio feeds is intuitive.
-If $g(t)$ is very similar to $f(t)$ but with a lag, then $g(t) \approx f(t + \tau)$
+If $g(t)$ is similar to $f(t)$ but with a lag, then $g(t) \approx f(t + \tau)$
 where $\tau$ is the time lag.  So synchronizing the two feeds amounts to finding the $\tau$ that 
 will maximize $\sum_t f(t) g(t - \tau)$.  This looks very similar to a 
-\href{https://en.wikipedia.org/wiki/Convolution}{convolution} between $f$ and $g$.
+\href{https://en.wikipedia.org/wiki/Convolution}{convolution} between $f$ and $g$,
+but with the roles of $t$ and $\tau$ exchanged in the arguments of $g$.
 An introductory course in Fourier Analysis cover the fact the Fourier transform of the convolution
 $f * g$ is the product of the Fourier transforms of $f$ and $g$.
 A practical application of this for discrete sampling problems such as this one is that convolution
@@ -294,7 +328,7 @@ Each window was characterized by a vector of 4096 numbers from the FFT output.
 Here is a visualization of the sound frequency profile at camera 1 on the 100th bucket (about 2.0 seconds):
 \begin{figure}[H]
 \center
-\includegraphics[width=0.80\textwidth]{fourier_spectrum.png}
+\includegraphics[width=0.90\textwidth]{fourier_spectrum.png}
 \end{figure}
 
 After each sound signal is converted to a Fourier spectrum, 
@@ -311,15 +345,31 @@ they were synchronized.  We then extracted the largest eigenvalue.
 For perfectly synchronized signals, the correlation matrix would be all 1s,
 and the first eigenvalue would be 7.  This run achieved a first eigenvalue of 4.742.
 
+Here is a visualization of the convolution used to determine the lag between camera 1 and camera 2.
+\begin{figure}[H]
+\center
+\includegraphics[width=0.90\textwidth]{convolution.png}
+\end{figure}
+
+This chart makes it clear that the signal estimating that the lag was at approximately 
++7 seconds was very strong.  The function spikes up close to around 4.8E15 in a 
+neighborhood where it had been below 3.2E15 .  
+This dot form of the dot product tends to get smaller as the number of terms increases
+(i.e. it is not normalized).  
+If the chart was continued all the way to either side, it would tail down to zero 
+on both sides.  For this reason, this particular approach will struggle to identify a large time lag.
+That is why the preliminary step of approximately synchronizing the feeds was performed.
+
 All code used to synchronize the audio feeds can be found in the file \texttt{audio\_synchronize.py}.
 The function \texttt{wav\_to\_freq} converts a WAV audio file to a Fourier spectrum using the FFT.
 The function \texttt{synchronize\_spectra} finds the time lag between two spectra by convolving one
 against the reversal of the other and taking the argmax of the result.
 The function \texttt{make\_synch\_matrix} builds an 7x7 matrix of estimated lags.
-Even though there are only 6 degrees of freedom in this problem , 
+Even though there are only 6 degrees of freedom in this problem, 
 we estimate all 42 entries and then average the rows to maximize the accuracy of the measurement.
 The outputs of the synchronization calculation are in the test file \texttt{synchronization\_output.txt}
 in the \texttt{calculations} directory of our repository.
+The plot was generated with the function \texttt{plot\_conv}.
 
 Of course the proof of the pudding is in the eating.  
 Here are images from six of the seven cameras of the first ostensibly synchronized frames:
@@ -334,7 +384,6 @@ and the ball is close to its apex.  This is particularly clear on the first thre
 if you start at the top left and read them like a page in a book (right, then down).
 We claim this is evidence that the audio synchronization was accurate to the nearest frame!
 
-\newpage
 \section{Transforming 3D World Coordinates to Pixel Locations}
 
 \subsection{Conventions}
@@ -375,14 +424,19 @@ and the third column should represent the $Z$-axis.
 In terms of $R$, we see that the first \textit{row} of $R$ must be equivalent to the camera $X$-axis in world coordinates, etc. \\
 
 In practical terms, it is relatively easy to estimate what the camera $Z$-axis is in world coordinates. 
-By looking at one frame and identifying the center pixel (I used MS Paint for this), we can identify where in the world coordinate system the camera is pointing. 
+By looking at one frame and identifying the center pixel, we can identify where in the world coordinate system the camera is pointing. 
+We used MS Paint in the prototyping stage to identify the center of the frame, followed by annotating plots with \texttt{matplotlib} in the
+production visual calibration routine presented below.
 The easiest way to do this is to consider where the ray pointing down the camera $Z$-axis hits a solid object. 
 For example, if the center pixel is on the rim or the backboard, we can write a vector representing where that point is in relation to the camera position. 
 We then normalize the vector to get the third row of $R$. \\
 
 To get the $X$-axis, we rely on the assumption that the camera $X$-axis has a $W$-coordinate of 0 in the world frame (i.e. that it is parallel to the ground). 
-This is a reasonable assumption because we start with the camera pointed parallel to the ground. 
+This is a reasonable assumption because we start with the camera pointed parallel to the ground.  
 When we tilt the camera slightly upwards, we don't rotate it in any other way, so the $X$-axis stays stationary while the $Z$ and $Y$ axes rotate (see Figure below). 
+In fact, for the six cameras mounted on tripods, it's hardly an assumption at all; all the tripods were set so the cameras would only tilt up and down.
+Interestingly, Camera 1 is not mounted on a tripod, but taped to the back of the backboard, and we can see a definite tilt
+in the visual calibration for that camera because this assumption \textit{does} fail for that camera.
 Thus, we look at the first two world coordinates of the camera $Z$-axis, flip the order of the coordinates, 
 and change one sign (we flip the sign of the $U$-coordinate so that the $X$ axis points to the right). 
 This ensures that the $X$ and $Z$ axes are orthogonal (have a dot product of 0). \\
@@ -420,7 +474,13 @@ Note: Some sources like to use ``homogeneous coordinates'' so that we can write 
 \end{figure}
 
 \subsection{Image to Pixel}
-To transform from image to pixel, we have to divide the image $x$ coordinate by the width of a pixel and the image $y$ coordinate by the height of a pixel. This will tell us how many pixels away a point in the image is from the center of the image. Let the width of a pixel by $s_{x}$ and the height of a pixel by $s_{y}$. Also, note that we must negate the image $y$ coordinate because the pixel $u$ axis points down instead of up. Right now we have $u=-\frac{y}{s_y}, v=\frac{x}{s_x}$. However, we have to add $\frac{1080}{2}=540$ to $u$ and $\frac{1920}{2}=960$ to $v$ so that the pixel $(0,0)$ is in the top left corner. The exact numbers come from the fact that each frame is 1080 by 1920 pixels.
+To transform from image to pixel, we have to divide the image $x$ coordinate by the width of a pixel and the image $y$ coordinate by the height of a pixel. 
+This will tell us how many pixels away a point in the image is from the center of the image.
+ Let the width of a pixel by $s_{x}$ and the height of a pixel by $s_{y}$. 
+ Also, note that we must negate the image $y$ coordinate because the pixel $u$ axis points down instead of up. 
+ Right now we have $u=-\frac{y}{s_y}, v=\frac{x}{s_x}$. 
+ However, we have to add $\frac{1080}{2}=540$ to $u$ and $\frac{1920}{2}=960$ to $v$ so that the pixel $(0,0)$ is in the top left corner. 
+ The exact numbers come from the fact that each frame is 1080 by 1920 pixels.
 
 \begin{align*}
 u&=-\frac{y}{s_{y}}+540 \\
@@ -474,14 +534,26 @@ Using Python, we can create a $N$ by 3 matrix with the world coordinates of thes
 With the parameters we already know, we can construct the 2D image plane coordinates of these points. \\
 
 We can also get the pixel coordinates of all of our points with reasonable accuracy by looking at the photo in MS Paint or similar software. 
-I did this by getting the pixel coordinates of the corners and using linspace. 
+We did this by getting the pixel coordinates of the corners and using linspace. 
 Now that we have our pixel coordinates and our 2D image plane coordinates for all of our points, we solve the least squares problem for $s_x$ and $s_y$. 
 Our final step in Python is to use our estimated values of $s_x$ and $s_y$ to complete the transformation and color the pixels corresponding to our real-world points 
 (in this case, the free throw rectangle and the white box).
 
+The numbers presented above were based on our initial estimates of the size of the court, 
+which were subsequently revised with the assistance of a trusty tape measure.
+We took all the logic presented above and wrapped it up into one end to end calculation
+in the file \texttt{pixels.py}.  This file uses the locations of features on the court that are computed
+in \texttt{basketball\_court.py}, presented below.  
+It also uses a handful of pixel coordinates for these landmarks.
+Running these calculations on the revised estimates for the size of the court,
+we find pixel dimensions $s_x$ = 1.196E-5 and $s_y$ = 1.141E-5.
+It is reassuring that these two estimates are within 4.8\% of each other, because we expect the pixels to be square.
+(As an aside, one of the trickier downstream effects of our initially flawed estimates of the size of the court
+was that our initial pixel sizes were off by about 12\%, which wrought havoc on the visual calibration.)
+
 \subsection{Python Implementation of Coordinate Transforms}
-The file \texttt{camera\_transform} implements all of these formulas in a modular form.
-Function \texttt{cam2pix} converts coordinates $(x, y)$ in the local image plane to integer pixel values $(u, v)$.
+The file \texttt{camera\_transform} implements all of these formulas in a modular form. \\
+Function \texttt{cam2pix} converts coordinates $(x, y)$ in the local image plane to integer pixel values $(u, v)$. \\
 Function \texttt{make\_transforms} takes as inputs 
 \texttt{cam\_pos}, the position of the camera in the world frame, and
 \texttt{cam\_point}, the position of \textit{any} object that the center of the camera is pointing at.
@@ -498,27 +570,28 @@ This function is a ``factory'' that makes a pair of transformers returning $(x, 
 \url{http://www.cs.ucf.edu/~mtappen/cap5415/lecs/lec19.pdf} \\
 \url{https://www.cse.unr.edu/~bebis/CS791E/Notes/CameraParameters.pdf} \\
 
-\newpage
 \section{Visual Calibration of Camera Position and Orientation}
 It is possible to confirm a camera calibration visually.  
 The idea is straightforward, though as usual on this challenge, the devil is in the details.
 We know where various prominent visual features on a basketball court are located in the
 ``world frame'' coordinate system of the court.  
-For instance, we know the court should be 94 feet long and that the rim should be exactly 10 feet over the ground.
+For instance, we know the court should be 88 feet long and that the rim should be exactly 10 feet over the ground.
 The idea is to produce arrays of 3D points on these objects, and then transform them to pixel locations.
 We can than ``annotate'' an image by overlaying the predicted pixel positions of visual landmarks on the image.
 If the calibration is correct, we will paint virtual lines on the perimeter, key, backboard, etc.
 
 The Python file \texttt{basketball\_court.py} computes coordinates for a series of visual landmarks on a
 basketball court including the perimeter, midcourt line, restraining circle at the center of the court,
-the ``key'', and the three point arc.  Here is a plot of the XY plane:
+the ``key'', and the three point arc.  Here is a plot of the XY plane.  
+The court is overlaid with a grid spaced at 2 feet.  The eight idealized camera locations are shown as blue dots.
 \begin{figure}[H]
 \center
 \includegraphics[width=0.68\textwidth]{court_lines.png}
 \end{figure}
 
 A careful observer will note that this figure does not quite match up with an NCAA regulation basketball court.
-This is not an error in the Python code!  It turns out that the court we used for our experiment at the MAC...
+This is not an error in the Python code!  
+As mentioned above, it turns out that the court we used for our experiment at the MAC...
 is not a regulation basketball court.  Not even close.  It's far narrower than a regulation court.
 That's why the widest edge of the three point arc is practically flush against the perimeter line.
 With the benefit of hindsight, it would have been much easier for us if we'd located a court with standard dimensions.
@@ -526,18 +599,18 @@ However we needed to do quite a bit of setup work, and it might not have been fe
 where the staff and players would be so accommodating of a science experiment encroaching on the athletic realm.
 
 At the top of the file, global variables are set with various dimensions of the court.
-The functions \texttt{make\_line}, \texttt{make\_polygon}, 
-% \texttt{make\_arc}, and \texttt{make_circle}
+The functions \texttt{make\_line}, \texttt{make\_polygon}, \texttt{make\_arc}  and \texttt{make\_circle}
 assemble arrays of 3D vectors of sample points on objects of these types.
 The function \texttt{make\_court\_lines} is the workhorse, generating both the lines plotted above
 which appear on the floor of the court, but also features corresponding to a vertical line from the
 floor to the base of the rim; the small and large white rectangle painted on the backboard;
 and the rim.
 
-Here is a visual demonstration to accompany the earlier discussion of the calibration of Camera 3:
+Here is a visual demonstration of the calibration of Camera 3:
 \begin{figure}[H]
 \center
 \includegraphics[width=1.00\textwidth]{Camera3_calibration.png}
+\caption*{Camera 3 Visual Calibration}
 \end{figure}
 
 The red pixels painted in correspond to the projected locations of the key,
@@ -566,6 +639,36 @@ lines to appear when matplotlib tries to connect pixel locations that are far of
 All calibrations are performed against the median frame so we have a clean image without
 any obstructions for the calibration.
 Each camera has its own calibration function, e.g. \texttt{calibrate\_cam3}.
+
+Here are the visual calibrations for the other cameras:
+\begin{figure}[H]
+\center
+\includegraphics[width=1.00\textwidth]{Camera7_calibration.png}
+\caption*{Camera 7 Visual Calibration}
+\end{figure}
+
+\begin{figure}[H]
+\includegraphics[width=1.00\textwidth]{Camera2_calibration.png}
+\caption*{Camera 2 Visual Calibration}
+
+\includegraphics[width=1.00\textwidth]{Camera8_calibration.png}
+\caption*{Camera 8 Visual Calibration}
+\end{figure}
+
+\begin{figure}[H]
+\includegraphics[width=1.00\textwidth]{Camera4_calibration.png}
+\caption*{Camera 4 Visual Calibration}
+
+\includegraphics[width=1.00\textwidth]{Camera6_calibration.png}
+\caption*{Camera 6 Visual Calibration}
+\end{figure}
+
+\begin{figure}[H]
+\includegraphics[width=1.00\textwidth]{Camera1_calibration.png}
+\caption*{Camera 1 Visual Calibration}
+\end{figure}
+
+\section{Tracking The Ball in Pixel Space}
 
 
 \end{document}

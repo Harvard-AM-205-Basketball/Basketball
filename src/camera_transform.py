@@ -22,9 +22,12 @@ import numpy as np
 focus: float = 0.024147
 
 # Pixel size
-pixel_size: float = 1.02E-5
-pixel_size_x: float = pixel_size
-pixel_size_y: float = pixel_size
+# pixel_size: float = 1.166E-5
+# pixel_size_x: float = pixel_size
+# pixel_size_y: float = pixel_size
+
+pixel_size_x: float = 1.196e-5
+pixel_size_y: float = 1.141e-5
 
 # Pixel count in the image
 pixel_w: int = 1920
@@ -67,8 +70,8 @@ def make_transforms(cam_pos: np.ndarray, cam_point: np.ndarray, zoom: float):
     transform_xy maps to (x, y) coordinates of its image in the camera's focal plane
     transform_pixel maps to (u, v) coordinates of its image in pixel space
     """
-    # The effective focus is the manufacturing focus divided by the zoom
-    focus_eff = focus / zoom
+    # The effective focus is the manufacturing focus multiplied by the zoom
+    focus_eff = focus * zoom
     
     # Camera z-axis in world coords is the difference between 
     # where the camera is pointing and where it is located

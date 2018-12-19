@@ -271,6 +271,39 @@ def test_synch_matrix():
     return lag_secs, corr_mat
 
 
+def plot_conv(spec_i, spec_j, M: int, N: int, title: str):
+    """Plot a convolution between two spectra"""
+    # Number of samples in the second spectrum
+    L_j = len(spec_j)
+    # Convolve the 2 spectra
+    conv = convolve(spec_i, spec_j[::-1,:])
+    # Take the square of the convolution
+    conv2 = np.mean(conv*conv, axis=1)
+    # Find the window offset that maximizes overlap
+    # lag_spec = L_j - np.argmax(conv2)
+    lag_spec = np.argmax(conv2) - L_j + 1
+    # Length of each step in seconds
+    step_secs: float = M / rate
+    # Lag in seconds
+    lag_secs = lag_spec * step_secs
+    
+    # Number of lags for plot
+    xx = np.arange(len(conv2))- L_j + 1
+    # Lag in seconds for 
+    tt = xx * step_secs
+    # Plot the inner product
+    fig, ax = plt.subplots(figsize=[12,8])
+    ax.set_title(title)
+    ax.set_xlabel('Time Shift (Seconds)')
+    ax.set_ylabel(r'Inner Product of $f(t) g(t-\tau)$')
+    ax.set_xlim(-30, 30)
+    # Add vertical line at estimated lag
+    ax.axvline(lag_secs, color='r', linewidth=2)
+    # Plot the convolution
+    ax.plot(tt, conv2, color='b')
+    ax.grid()
+    return fig, ax
+
 # *************************************************************************************************
 # Global variables
 # Path to audio (WAV) directory
