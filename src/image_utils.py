@@ -12,9 +12,16 @@ Wed Dec 19 00:29:33 2018
 import os
 import re
 import numpy as np
+import matplotlib.pyplot as plt
 from skimage import io
+from IPython.display import display
 import tqdm
 from typing import List, Optional
+
+# *************************************************************************************************
+# global variables
+# Path with synchronized frames
+path_frames = r'../sync_frames'
 
 
 # *************************************************************************************************
@@ -87,3 +94,44 @@ def load_frames(path_frames: str, camera_name: str, max_frames: Optional[int]=No
         frames[T,:,:,:] = load_frame_i(path, fname)
     # Return the frames
     return frames
+
+
+# *************************************************************************************************
+def combine_frames(frames):
+    """Combine an array of 6 frames into one giant frame for quick visualization"""
+    combined_frame = np.zeros((3*1080, 2*1920, 3))
+    for i in range(3):
+        for j in range(2):
+            i0 = 1080*i
+            j0 = 1920*j
+            combined_frame[i0:i0+1080, j0:j0+1920] = frames[2*i+j]
+    return combined_frame
+
+
+def make_tableau(n: int):
+    """Make a "tableau" of synchronized frames at this frame number"""    
+    # Load the frames
+    frame2 = load_frame(f'{path_frames}/Camera2', f'Camera2_SyncFrame{n:05d}.png')
+    frame3 = load_frame(f'{path_frames}/Camera3', f'Camera3_SyncFrame{n:05d}.png')
+    frame4 = load_frame(f'{path_frames}/Camera4', f'Camera4_SyncFrame{n:05d}.png')
+    frame6 = load_frame(f'{path_frames}/Camera6', f'Camera6_SyncFrame{n:05d}.png')
+    frame7 = load_frame(f'{path_frames}/Camera7', f'Camera7_SyncFrame{n:05d}.png')
+    frame8 = load_frame(f'{path_frames}/Camera8', f'Camera8_SyncFrame{n:05d}.png')
+    # Assemble frames into one list
+    frames = [frame2, frame3, frame4, frame6, frame7, frame8]
+    # Return the combined frame
+    return combine_frames(frames)
+
+
+def plot_tableau(combined_frame):
+    fig, ax = plt.subplots(figsize=[3*9,2*16])
+    ax.imshow(combined_frame)
+    ax.axis('off')
+    return fig
+
+
+#    combined_frame = make_tableau(2394)
+#    fig = plot_tableau(combined_frame)
+#    io.imsave('../figs/combined_2394.png', combined_frame)
+#    plt.close(fig)
+

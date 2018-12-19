@@ -10,9 +10,9 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from IPython.display import display
-from image_background import load_frame
+from image_utils import load_frame
 from basketball_court import make_court_lines
-from camera_transform import make_transform_uv
+from camera_transform import make_transforms
 from am205_utils import arange_inc
 
 
@@ -77,11 +77,13 @@ def annotate_frame_dots(ax, pixels: np.ndarray, color: str):
     ax.plot(pixels[mask,0], pixels[mask,1], color=color, linewidth=0, marker='o', markersize=1)
 
 
-
+# *************************************************************************************************
 # Visual features for calibration
+# Main
 court_lines = make_court_lines()
 perimeter = court_lines['perimeter']
 center_circle = court_lines['center_circle']
+# Northern half
 key_box_N = court_lines['key_box_N']
 key_circle_N = court_lines['key_circle_N']
 three_point_N = court_lines['three_point_N']
@@ -89,7 +91,7 @@ vertical_N = court_lines['vertical_N']
 backboard_N = court_lines['backboard_N']
 backboard_in_N = court_lines['backboard_in_N']
 rim_N = court_lines['rim_N']
-
+# Sothern half
 key_box_S = court_lines['key_box_S']
 key_circle_S = court_lines['key_circle_S']
 three_point_S = court_lines['three_point_S']
@@ -105,23 +107,22 @@ def calibrate_cam3():
     # Name of this camera
     camera_name = 'Camera3'
     
-    # Position of camera (adjusted for height of tripod)
-    cam_pos = np.array([20.0, 0.0, 5.2])
-    # Camera 3 is ROUGHLY pointed towards a point 2 feet below the front of the rim
-    cam_point = np.array([0.0, 38.3, 8.0])
-    # Transform for camera 3 (to pixel space)
-    # transform = make_transform_uv(cam_pos, cam_point, 1.00)
-    
+    # Position and orientation of camera 
+    cam_pos = cam_pos_tbl[camera_name]
+    cam_point = cam_point_tbl[camera_name]
+    zoom = zoom_tbl[camera_name]
+    # Transform for camera 3
+    transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
     
     # Apply the transform for camera 3 to various shapes of interest
     # Convert the xy positions to uv pixel locations
-    perimeter_uv = transform(perimeter)
-    key_box_uv = transform(key_box_N)
-    key_circle_uv = transform(key_circle_N)
-    three_point_uv = transform(three_point_N)
-    vertical_uv = transform(vertical_N)
-    backboard_uv = transform(backboard_N)
-    backboard_in_uv = transform(backboard_in_N)   
+    perimeter_uv = transform_uv(perimeter)
+    key_box_uv = transform_uv(key_box_N)
+    key_circle_uv = transform_uv(key_circle_N)
+    three_point_uv = transform_uv(three_point_N)
+    vertical_uv = transform_uv(vertical_N)
+    backboard_uv = transform_uv(backboard_N)
+    backboard_in_uv = transform_uv(backboard_in_N)   
     
     # Load the frame
     frame = load_frame(path_frames, f'{camera_name}_median.png')
@@ -141,29 +142,30 @@ def calibrate_cam3():
     fig.savefig(f'../figs/{camera_name}_calibration.png', bbox_inches='tight')
     plt.close(fig)
 
+    # Return the fitted transforms
+    return transform_xy, transform_uv, transform_fg
 
 def calibrate_cam7():
     """Calibration for camera 7"""
     # Name of this camera
     camera_name = 'Camera7'
     
-    # Position of camera (adjusted for height of tripod)
-    cam_pos = np.array([-20.0, 0.0, 5.2])
-    # Camera 7 is pointed at
-    cam_point = np.array([9.1, 38.0, 4.2])
-
-    # Transform for camera 3 (to pixel space)
-    transform = make_transform_uv(cam_pos, cam_point, 1.00)
+    # Position and orientation of camera 
+    cam_pos = cam_pos_tbl[camera_name]
+    cam_point = cam_point_tbl[camera_name]
+    zoom = zoom_tbl[camera_name]
+    # Transform for camera 7
+    transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
     
     # Apply the transform for camera 3 to various shapes of interest
     # Convert the xy positions to uv pixel locations
-    perimeter_uv = transform(perimeter)
-    key_box_uv = transform(key_box_N)
-    key_circle_uv = transform(key_circle_N)
-    three_point_uv = transform(three_point_N)
-    vertical_uv = transform(vertical_N)
-    backboard_uv = transform(backboard_N)
-    backboard_in_uv = transform(backboard_in_N)   
+    perimeter_uv = transform_uv(perimeter)
+    key_box_uv = transform_uv(key_box_N)
+    key_circle_uv = transform_uv(key_circle_N)
+    three_point_uv = transform_uv(three_point_N)
+    vertical_uv = transform_uv(vertical_N)
+    backboard_uv = transform_uv(backboard_N)
+    backboard_in_uv = transform_uv(backboard_in_N)   
     
     # Load the frame
     frame = load_frame(path_frames, f'{camera_name}_median.png')
@@ -190,21 +192,19 @@ def calibrate_cam2():
     # Name of this camera
     camera_name = 'Camera2'
     
-    # Position and orientation of camera
-    # cam_pos = np.array([20.0, 43.5, 5.5])
-    # cam_point = np.array([0.0, 38.0, 8.1])
-    cam_pos = np.array([20.0, 43.0, 5.5])
-    cam_point = np.array([-20, 33.2, 10.5])
-
-    # Transform for camera 3 (to pixel space)
-    transform = make_transform_uv(cam_pos, cam_point, 1.00)
+    # Position and orientation of camera 
+    cam_pos = cam_pos_tbl[camera_name]
+    cam_point = cam_point_tbl[camera_name]
+    zoom = zoom_tbl[camera_name]
+    # Transform for camera 2
+    transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
     
     # Apply the transform for camera 3 to various shapes of interest
     # Convert the xy positions to uv pixel locations
-    vertical_uv = transform(vertical_N)
-    backboard_uv = transform(backboard_N)
-    backboard_in_uv = transform(backboard_in_N)   
-    rim_uv = transform(rim_N)
+    vertical_uv = transform_uv(vertical_N)
+    backboard_uv = transform_uv(backboard_N)
+    backboard_in_uv = transform_uv(backboard_in_N)   
+    rim_uv = transform_uv(rim_N)
     
     # Load the frame
     frame = load_frame(path_frames, f'{camera_name}_median.png')
@@ -228,22 +228,21 @@ def calibrate_cam8():
     # Name of this camera
     camera_name = 'Camera8'
     
-    # Position and orientation of camera
-    cam_pos = np.array([-20.0, 43.0, 5.5])
-    # cam_point = np.array([1.0, 34.5, 7.5])
-    cam_point = np.array([20.0, 23.0, 10.0])
-
-    # Transform for camera 3 (to pixel space)
-    transform = make_transform_uv(cam_pos, cam_point, 1.00)
+    # Position and orientation of camera 
+    cam_pos = cam_pos_tbl[camera_name]
+    cam_point = cam_point_tbl[camera_name]
+    zoom = zoom_tbl[camera_name]
+    # Transform for camera 8
+    transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
     
     # Apply the transform for camera 3 to various shapes of interest
     # Convert the xy positions to uv pixel locations
-    perimeter_uv = transform(perimeter)
-    three_point_N_uv = transform(three_point_N)
-    vertical_uv = transform(vertical_N)
-    backboard_uv = transform(backboard_N)
-    backboard_in_uv = transform(backboard_in_N)   
-    rim_uv = transform(rim_N)
+    perimeter_uv = transform_uv(perimeter)
+    three_point_N_uv = transform_uv(three_point_N)
+    vertical_uv = transform_uv(vertical_N)
+    backboard_uv = transform_uv(backboard_N)
+    backboard_in_uv = transform_uv(backboard_in_N)   
+    rim_uv = transform_uv(rim_N)
     
     # Load the frame
     frame = load_frame(path_frames, f'{camera_name}_median.png')
@@ -268,25 +267,24 @@ def calibrate_cam4():
     # Name of this camera
     camera_name = 'Camera4'
     
-    # Position and orientation of camera
-    cam_pos = np.array([20.0, -42.0, 5.7])
-    # cam_point = np.array([-1.2, 49.0, 5.2])
-    cam_point = np.array([-1.3, 49.0, cam_pos[2]-0.8])
-
-    # Transform for camera 3 (to pixel space)
-    transform = make_transform_uv(cam_pos, cam_point, 2.02)
+    # Position and orientation of camera 
+    cam_pos = cam_pos_tbl[camera_name]
+    cam_point = cam_point_tbl[camera_name]
+    zoom = zoom_tbl[camera_name]
+    # Transform for camera 4
+    transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
     
     # Apply the transform for camera 3 to various shapes of interest
     # Convert the xy positions to uv pixel locations
-    perimeter_uv = transform(perimeter)
-    center_circle_uv = transform(center_circle)
-    key_box_N_uv = transform(key_box_N) 
-    key_circle_N_uv = transform(key_circle_N) 
-    three_point_N_uv = transform(three_point_N)
-    vertical_uv = transform(vertical_N)
-    backboard_uv = transform(backboard_N)
-    backboard_in_uv = transform(backboard_in_N)   
-    rim_uv = transform(rim_N)
+    perimeter_uv = transform_uv(perimeter)
+    center_circle_uv = transform_uv(center_circle)
+    key_box_N_uv = transform_uv(key_box_N) 
+    key_circle_N_uv = transform_uv(key_circle_N) 
+    three_point_N_uv = transform_uv(three_point_N)
+    vertical_uv = transform_uv(vertical_N)
+    backboard_uv = transform_uv(backboard_N)
+    backboard_in_uv = transform_uv(backboard_in_N)   
+    rim_uv = transform_uv(rim_N)
     
     # Load the frame
     frame = load_frame(path_frames, f'{camera_name}_median.png')
@@ -315,23 +313,23 @@ def calibrate_cam6():
     camera_name = 'Camera6'
     
     # Position and orientation of camera
-    cam_pos = np.array([-20.0, -42.0, 5.6])
-    cam_point = np.array([2.6, 49.0, cam_pos[2]-0.3])
-
-    # Transform for camera 3 (to pixel space)
-    transform = make_transform_uv(cam_pos, cam_point, 2.22)
+    cam_pos = cam_pos_tbl[camera_name]
+    cam_point = cam_point_tbl[camera_name]
+    zoom = zoom_tbl[camera_name]
+    # Transform for camera 6
+    transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
     
     # Apply the transform for camera 3 to various shapes of interest
     # Convert the xy positions to uv pixel locations
-    perimeter_uv = transform(perimeter)
-    center_circle_uv = transform(center_circle)
-    key_box_N_uv = transform(key_box_N) 
-    key_circle_N_uv = transform(key_circle_N) 
-    three_point_N_uv = transform(three_point_N)
-    vertical_uv = transform(vertical_N)
-    backboard_uv = transform(backboard_N)
-    backboard_in_uv = transform(backboard_in_N)   
-    rim_uv = transform(rim_N)
+    perimeter_uv = transform_uv(perimeter)
+    center_circle_uv = transform_uv(center_circle)
+    key_box_N_uv = transform_uv(key_box_N) 
+    key_circle_N_uv = transform_uv(key_circle_N) 
+    three_point_N_uv = transform_uv(three_point_N)
+    vertical_uv = transform_uv(vertical_N)
+    backboard_uv = transform_uv(backboard_N)
+    backboard_in_uv = transform_uv(backboard_in_N)   
+    rim_uv = transform_uv(rim_N)
     
     # Load the frame
     frame = load_frame(path_frames, f'{camera_name}_median.png')
@@ -361,20 +359,20 @@ def calibrate_cam1():
     camera_name = 'Camera1'
     
     # Position and orientation of camera
-    cam_pos = np.array([0.0, 38.0 + 2.8, 10.0 +0.48])
-    cam_point = np.array([1.0, -48.0, 8.0])
-
-    # Transform for camera 3 (to pixel space)
-    transform = make_transform_uv(cam_pos, cam_point, 1.00)
+    cam_pos = cam_pos_tbl[camera_name]
+    cam_point = cam_point_tbl[camera_name]
+    zoom = zoom_tbl[camera_name]
+    # Transform for camera 6
+    transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
     
     # Apply the transform for camera 3 to various shapes of interest
     # Convert the xy positions to uv pixel locations
-    perimeter_uv = transform(perimeter)
-    center_circle_uv = transform(center_circle)
-    key_box_S_uv = transform(key_box_S)
-    key_circle_S_uv = transform(key_box_S)
-    three_point_S_uv = transform(three_point_S)
-    rim_uv = transform(rim_N)
+    perimeter_uv = transform_uv(perimeter)
+    center_circle_uv = transform_uv(center_circle)
+    key_box_S_uv = transform_uv(key_box_S)
+    key_circle_S_uv = transform_uv(key_box_S)
+    three_point_S_uv = transform_uv(three_point_S)
+    rim_uv = transform_uv(rim_N)
     
     # Load the frame
     frame = load_frame(path_frames, f'{camera_name}_median.png')
@@ -395,11 +393,89 @@ def calibrate_cam1():
 
 
 # *************************************************************************************************
-# Run the calibration
-calibrate_cam3()
-#    calibrate_cam7()
-#    calibrate_cam2()
-#    calibrate_cam8()
-#    calibrate_cam4()
-#    calibrate_cam6()
-#    calibrate_cam1()
+def make_cal_tables():
+    """Make tables to store calibrations for each camera"""
+    # Table with the calibrated values for each camera
+    cam_pos_tbl = dict()
+    cam_point_tbl = dict()
+    zoom_tbl = dict()
+    
+    # Camera 3 calibration
+    cam_pos_tbl['Camera3'] = np.array([20.0, 0.0, 5.2])
+    # Camera 3 is ROUGHLY pointed towards a point 2 feet below the front of the rim
+    cam_point_tbl['Camera3'] = np.array([0.0, 38.3, 8.0])
+    zoom_tbl['Camera3'] = 1.00
+    
+    # Camera 7 calibration
+    cam_pos_tbl['Camera7'] =  np.array([-20.0, 0.0, 5.2])
+    cam_point_tbl['Camera7'] =  np.array([9.1, 38.0, 4.2])
+    zoom_tbl['Camera7'] = 1.00
+    
+    # Camera 2 calibration
+    cam_pos_tbl['Camera2'] = np.array([20.0, 43.0, 5.5])
+    cam_point_tbl['Camera2'] = np.array([-20, 33.2, 10.5])
+    zoom_tbl['Camera2'] = 1.00
+    
+    # Camera 8 calibration
+    cam_pos_tbl['Camera8'] = np.array([-20.0, 43.0, 5.5])
+    cam_point_tbl['Camera8'] = np.array([20.0, 23.0, 10.0])
+    zoom_tbl['Camera8'] = 1.00
+    
+    # Camera 4 calibration
+    cam_pos_tbl['Camera4'] = np.array([20.0, -42.0, 5.7])
+    cam_point_tbl['Camera4'] = np.array([-1.3, 49.0, 4.9])
+    zoom_tbl['Camera4'] = 2.02
+    
+    # Camera 6 calibration
+    cam_pos_tbl['Camera6'] = np.array([-20.0, -42.0, 5.6])
+    cam_point_tbl['Camera6'] = np.array([2.6, 49.0, 5.3])
+    zoom_tbl['Camera6'] = 2.22
+    
+    # Camera 1 calibration
+    cam_pos_tbl['Camera1'] = np.array([0.0, 38.0 + 2.8, 10.0 +0.48])
+    cam_point_tbl['Camera1'] = np.array([1.0, -48.0, 8.0])
+    zoom_tbl['Camera1'] = 1.00
+
+    # Return the assembled tables
+    return cam_pos_tbl, cam_point_tbl, zoom_tbl
+
+
+# Get the settings
+cam_pos_tbl, cam_point_tbl, zoom_tbl = make_cal_tables()
+# Table with the transforms
+transforms = dict()
+for camera_name in cam_pos_tbl:
+    # Look up position, orientation and zoom of camera
+    cam_pos = cam_pos_tbl[camera_name]
+    cam_point = cam_point_tbl[camera_name]
+    zoom = zoom_tbl[camera_name]
+    # Build the transforms for this camera and save them to the table
+    transforms[camera_name] = make_transforms(cam_pos, cam_point, zoom)
+    
+
+def regen_transforms(camera_name: str):
+    """Return the transforms for the named camera without generating the calibration charts."""
+    # Look up position, orientation and zoom of camera
+    cam_pos = cam_pos_tbl[camera_name]
+    cam_point = cam_point_tbl[camera_name]
+    zoom = zoom_tbl[camera_name]
+    # Build the transforms for this camera
+    transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
+
+
+# *************************************************************************************************
+def main():
+    # reference to global copy of transforms - we want to update it with the
+    # assembled calibration objects
+    global transforms
+    # Run the calibrations
+    transforms['Camera3'] = calibrate_cam3()
+    transforms['Camera7'] = calibrate_cam7()
+    transforms['Camera2'] = calibrate_cam2()
+    transforms['Camera8'] = calibrate_cam8()
+    transforms['Camera4'] = calibrate_cam4()
+    transforms['Camera6'] = calibrate_cam6()
+    transforms['Camera1'] = calibrate_cam1()
+
+if __name__ == '__main__':
+    main()
