@@ -14,8 +14,10 @@ Wed Dec 19 16:16:10 2018
 """
 
 import sys
-from textwrap import dedent
+import os
+import matplotlib.pyplot as plt
 from joblib import Parallel, delayed
+from textwrap import dedent
 from tqdm import tqdm
 from image_utils import make_tableau, plot_tableau
 from typing import List
@@ -28,7 +30,7 @@ path_tableau: str = '../tableau'
 frame_count: int = 4391
 
 # Number of threads
-jobs: int = 16
+jobs: int = 1
 
 def process_frames(frame_nums, progress_bar: bool = False):
     """Process a batch of frames"""
@@ -36,9 +38,20 @@ def process_frames(frame_nums, progress_bar: bool = False):
     frame_iter = tqdm(frame_nums) if progress_bar else frame_nums
     # Iterate over the frame numbers
     for n in frame_iter:
+        # The filename
+        fname = f'{path_tableau}/Tableau{n:05d}.png'
+        # If this file already exists, skip it and continue
+        if os.path.isfile(fname):
+            continue
         frames = make_tableau(n)
         fig, ax = plot_tableau(frames)
-        fig.savefig(f'{path_tableau}/Tableau{n:05d}.png')
+        fig.savefig(fname)
+        # Close the tableau
+        plt.close(fig)
+        # Manually delete the frame arrays (done with them now)
+        for frame in frames:
+            del frame
+        del frames
 
 
 def main():
@@ -82,10 +95,14 @@ def main():
     # List of arguments for parallel job
     args = [(job_tbl[jn], jn == 1) for jn in range(jobs)]
     
-    # Run these jobs in parallel
-    Parallel(n_jobs=jobs)(
-            delayed(process_frames)(frame_nums, progress_bar)
-            for frame_nums, progress_bar in args)
+    # Run these jobs in parallel if jobs > 1
+    if jobs > 1:
+        Parallel(n_jobs=jobs)(
+                delayed(process_frames)(frame_nums, progress_bar)
+                for frame_nums, progress_bar in args)
+    # Otherwise run this single threaded
+    else:
+        process_frames(frame_nums, True)
 
 if __name__ == '__main__':
     main()
