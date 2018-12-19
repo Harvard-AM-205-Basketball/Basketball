@@ -12,6 +12,11 @@ frames
 *.caffemodel
 *.prototxt
 
+# TeX outputs
+*.aux
+*.out
+*.gz
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
