@@ -15,15 +15,17 @@ Mon Dec 17 12:54:44 2018
 """
 
 import numpy as np
+from numpy import sqrt, sin, cos, arccos, arctan2
 
 # *************************************************************************************************
 # Focal length (0.024147 ft is from manufacturer), changes with zoom
 focus: float = 0.024147
 
 # Pixel size - obtained by running pixel.py
-# pixel_size: float = 1.166E-5
 pixel_size_x: float = 1.196e-5
 pixel_size_y: float = 1.141e-5
+# Mean pixel size
+pixel_size: float = 1.166E-5
 
 # Pixel count in the image
 pixel_w: int = 1920
@@ -71,6 +73,37 @@ def cam2pix_f(object_xy: np.ndarray):
     v = -y / pixel_size_y + pixel_hh
     # Return these as an Nx2 array
     return np.stack([u, v]).T
+
+
+# *************************************************************************************************
+def sph2xyz(theta: float, phi: float):
+    """Convert the polar angles theta and phi to normalized x, y, z coordinates"""
+    # https://en.wikipedia.org/wiki/Spherical_coordinate_system
+    # use the Mathematics convention because AM-205 has "math" in the course name
+    # theta is the angle in the (x, y) plane (same as for 2D)
+    # phi is the angle down from the "north pole" betwwen 0 and pi
+    
+    # The height z
+    z = cos(phi)
+    # The distance in the XY plane
+    r_xy = sin(phi)
+    # The x and y coordinates are as usual
+    x = r_xy * cos(theta)
+    y = r_xy * sin(theta)
+    # Assemble into an Nx3 matrix
+    return np.stack([x, y, z]).T
+
+
+def xyz2sph(x: np.ndarray, y: np.ndarray, z: np.ndarray):
+    """Convert Cartesian coordinates x, y, z to polar angles theta and phi"""
+    # The size of each vector
+    r = sqrt(x*x + y*y + z*z)
+    # The angle phi from the north pole (modified latitude)
+    phi = arccos(z / r)
+    # The angle theta only depends on x and y
+    theta = arctan2(y / r, x / r)    
+    # Return angles as a pair of arrays
+    return theta, phi
 
 
 # *************************************************************************************************

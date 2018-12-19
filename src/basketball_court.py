@@ -151,8 +151,8 @@ def make_court_lines():
     key_circle_radius = key_w / 2.0
     key_circle_center_N = np.array([0.0, +court_hh - key_h, 0.0])
     key_circle_center_S = np.array([0.0, -court_hh + key_h, 0.0])
-    key_circle_N = make_circle(key_circle_center_N, key_circle_radius, 360)
-    key_circle_S = make_circle(key_circle_center_S, key_circle_radius, 360)
+    key_circle_N = make_arc(key_circle_center_N, key_circle_radius, 1*pi, 2*pi, 360)
+    key_circle_S = make_arc(key_circle_center_S, key_circle_radius, 0*pi, 1*pi, 360)
 
     # The y coordinates of both baskets; they are 43 feet from the center
     # (the height of a half court is 47 feet, and the basket is 4 feet inside the back line)
@@ -272,6 +272,12 @@ def visualize_court(lines):
 
     three_point_N = lines['three_point_N']
     three_point_S = lines['three_point_S']
+    
+    rim_N = lines['rim_N']
+    rim_S = lines['rim_S']
+    
+    backboard_N = lines['backboard_N']
+    backboard_S = lines['backboard_S']
 
     # Plot the lines
     fig, ax = plt.subplots(figsize=[court_w / 8, court_h / 8])
@@ -309,6 +315,18 @@ def visualize_court(lines):
             linewidth=linewidth, marker=marker, markersize=markersize)            
     ax.plot(three_point_S[:,0], three_point_S[:,1], color='r', label='3pt',
             linewidth=linewidth, marker=marker, markersize=markersize)
+
+    ax.plot(rim_N[:,0], rim_N[:,1], color='darkorange', label='rim',
+            linewidth=linewidth, marker=marker, markersize=markersize)
+    ax.plot(rim_S[:,0], rim_S[:,1], color='darkorange', label='rim',
+            linewidth=linewidth, marker=marker, markersize=markersize)
+
+    ax.plot(backboard_N[:,0], backboard_N[:,1], color='k', label='rim',
+            linewidth=4, marker=marker, markersize=markersize)
+    ax.plot(backboard_S[:,0], backboard_S[:,1], color='k', label='rim',
+            linewidth=4, marker=marker, markersize=markersize)
+
+
     
     # Add the 8 cameras
     ax.plot(0, +court_hh, 'o', color='b', markersize=10)

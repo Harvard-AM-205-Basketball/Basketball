@@ -124,14 +124,34 @@ def make_tableau(n: int):
 
 
 def plot_tableau(combined_frame):
-    fig, ax = plt.subplots(figsize=[3*9,2*16])
+    # figsize=[19.2, 10.8]
+    fig, ax = plt.subplots(figsize=[3*10.8,2*19.2], dpi=100, frameon=False)
     ax.imshow(combined_frame)
     ax.axis('off')
     return fig
 
 
-#    combined_frame = make_tableau(2394)
-#    fig = plot_tableau(combined_frame)
-#    io.imsave('../figs/combined_2394.png', combined_frame)
-#    plt.close(fig)
+def fig2img(fig):
+    """Convert a matlab figure to a numpy array of pixels (RGB)"""
+    fig.canvas.draw()
+    img = np.array(fig.canvas.renderer._renderer)
+    return img[:, :, 0:3]
 
+
+def combine_figs(figs):
+    """Combine an array of 6 figures into one giant frame for visualization"""
+    # Convert each figure into an image
+    frames = list()
+    for fig in figs:
+        # Turn off frame
+        # fig.set_frameon('False')
+        # Make axes into the whole figure
+        # ax = plt.Axes(fig, [0., 0., 1., 1.])
+        # Turn off axes
+        # ax.set_axis_off()
+        # fig.add_axes(ax)
+        # Convert the plot into an image
+        frame = fig2img(fig) / 255.0
+        frames.append(frame)
+    # Combine the frames
+    return combine_frames(frames)

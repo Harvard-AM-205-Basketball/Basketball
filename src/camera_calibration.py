@@ -13,7 +13,8 @@ from IPython.display import display
 from image_utils import load_frame
 from basketball_court import make_court_lines
 from camera_transform import make_transforms
-from am205_utils import arange_inc
+from am205_utils import range_inc, arange_inc
+from typing import List
 
 
 # *************************************************************************************************
@@ -440,18 +441,28 @@ def make_cal_tables():
     return cam_pos_tbl, cam_point_tbl, zoom_tbl
 
 
+# *************************************************************************************************
+# Camera numbers
+camera_nums: np.ndarray = np.array([i for i in range_inc(8) if i != 5], dtype=np.int8)
+# Camera names
+camera_names: List[str] = [f'Camera{i}' for i in camera_nums]
+
 # Get the settings
 cam_pos_tbl, cam_point_tbl, zoom_tbl = make_cal_tables()
 # Table with the transforms
 transforms = dict()
-for camera_name in cam_pos_tbl:
+for camera_name in camera_names:
     # Look up position, orientation and zoom of camera
     cam_pos = cam_pos_tbl[camera_name]
     cam_point = cam_point_tbl[camera_name]
     zoom = zoom_tbl[camera_name]
     # Build the transforms for this camera and save them to the table
     transforms[camera_name] = make_transforms(cam_pos, cam_point, zoom)
-    
+
+# Alias transforms to integer camera IDs for convenience
+for n in camera_nums:
+    transforms[n] = transforms[f'Camera{n}']
+
 
 def regen_transforms(camera_name: str):
     """Return the transforms for the named camera without generating the calibration charts."""
