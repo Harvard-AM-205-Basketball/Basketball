@@ -764,7 +764,8 @@ This makes it better suited for the optimization used in the numerical camera ca
 \url{https://www.cse.unr.edu/~bebis/CS791E/Notes/CameraParameters.pdf} \\
 
 \newpage
-\section{Visual Calibration of Camera Position and Orientation}
+\section{Calibration of Camera Position and Orientation}
+\subsection{Visual Calibration}
 It is possible to confirm a camera calibration visually.  
 The idea is straightforward, though as usual on this project, the devil is in the details.
 We know where various prominent visual features on a basketball court are located in the
@@ -868,30 +869,30 @@ Cameras are shown in symmetrical pairs to aid comprehension
 \newpage
 \begin{figure}[H]
 \center
-\includegraphics[width=1.00\textwidth]{Camera3_calibration.png}
+\includegraphics[width=1.00\textwidth]{Camera3_calibration_visual.png}
 \caption*{Camera 3 Visual Calibration}
-\includegraphics[width=1.00\textwidth]{Camera7_calibration.png}
+\includegraphics[width=1.00\textwidth]{Camera7_calibration_visual.png}
 \caption*{Camera 7 Visual Calibration}
 \end{figure}
 
 \begin{figure}[H]
-\includegraphics[width=1.00\textwidth]{Camera2_calibration.png}
+\includegraphics[width=1.00\textwidth]{Camera2_calibration_visual.png}
 \caption*{Camera 2 Visual Calibration}
 
-\includegraphics[width=1.00\textwidth]{Camera8_calibration.png}
+\includegraphics[width=1.00\textwidth]{Camera8_calibration_visual.png}
 \caption*{Camera 8 Visual Calibration}
 \end{figure}
 
 \begin{figure}[H]
-\includegraphics[width=1.00\textwidth]{Camera4_calibration.png}
+\includegraphics[width=1.00\textwidth]{Camera4_calibration_visual.png}
 \caption*{Camera 4 Visual Calibration}
 
-\includegraphics[width=1.00\textwidth]{Camera6_calibration.png}
+\includegraphics[width=1.00\textwidth]{Camera6_calibration_visual.png}
 \caption*{Camera 6 Visual Calibration}
 \end{figure}
 
 \begin{figure}[H]
-\includegraphics[width=1.00\textwidth]{Camera1_calibration.png}
+\includegraphics[width=1.00\textwidth]{Camera1_calibration_visual.png}
 \caption*{Camera 1 Visual Calibration}
 \end{figure}
 
@@ -901,23 +902,67 @@ As mentioned above, Camera 1 is not parallel to the XY plane in world space,
 so it requires an additional degree of freedom that we did not incorporate into
 our modeling apparatus.
 
-Here is a brief outline of two strategies that could be used to improve these camera
-calibrations on a project with more available time.  The first step would be to 
-follow a similar strategy to the one used to calibrate the pixel sizes $s_x$ and $s_y$.
-That is, use MS paint or a similar tool to estimate the pixel positions of a series of 
-known landmarks in the frame.  For our go-to example of Camera 3, 
-we can locate the four corners of the key; the four corners of the backboard
-(outside); and the four corners of the backboard (inside).  
-We can also locate the northwest corner of the court.
-This would give us 13 constraints to solve an equation with 5 unknowns:
-the x, y, z coordinates of the camera in the world plane; 
-and the angles $\theta$ and $\phi$ describing its orientation.
-This equation could then be solved numerically as a least squares error minimization.
-The cameras located further away were zoomed, but all the nearby cameras had no zoom.
-A fully automated calibration strategy would be to tag the pixels corresponding to the landmarks
-painted in the visual calibration.  
-The numerical optimization would then aim to minimize the difference between the tagged
-and predicted pixels.
+\subsection{Numerical Calibration}
+We performed an alternate camera calibration strategy of performing a 
+numerical optimization to infer the location of each camera.  
+Using the median frame for each camera, we identified as many visible landmarks as we could
+from among the 41 described above.  
+For each of these landmarks, we used MS Paint to estimate the 
+pixel location $(u, v)$ corresponding to this feature.  
+We then set up an optimization problem to estimate the camera's position, orientation, and zoom.
+The input parameters to the objective function were the position of the camera in world space
+$(x, y, z)$; two spherical angles $\theta$ and $\phi$ describing where it is pointed; and the zoom.
+We used this alternate characterization from the aim point because 
+the aim point has a superfluous degree of freedom.  
+For a person looking at stills it is a useful interface, but for an optimization engine 
+it would only add unnecessary confusion.
+
+These calculations were carried out in the file 
+\href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/camera_calibration_num.py}
+{\texttt{camera\_calibration\_num.py}}.  
+The function \texttt{make\_objective\_func} is a factory.  
+It takes an inputs a collection of landmarks, accepting both their world coordinates $(x, y, z)$ 
+and their apparent pixel coordinates $(u, v)$.  
+The objective function takes as inputs the six parameters $(x, y, z, \theta, \phi, \text{zoom})$.
+It builds a transform; applies the floating point pixel transformation to \texttt{landmark\_xyz};
+and compares the results \texttt{calc\_uv} to the observed pixel locations \texttt{landmarks\_uv}.
+The scalar valued objective function is just the sum of squared error on the pixel calculations.
+
+The function \texttt{calibrate\_camera} performs the calibration on a camera.
+It gets the visual calibration function to produce diagnostic plots similar to those
+used to solve for the visual calibration.  It also gets the visual calibration settings.
+The landmark data is populated on tables below and the function looks them up.
+It instantiates the objective function and minimizes it using \texttt{scipy.minimize} 
+with default settings.  The initial guess is the visual calibration.
+
+In addition to displaying annotated plots, it also outputs its score and how much
+it was able to improve on the visual calibration.
+Reported data includes the old and new camera position; 
+the change in the implied angle $\theta$ and $\phi$; and the change in score.
+The score is also reported as an RMS error in recovered pixel values, 
+which are relatively easy to interpret.
+
+At the bottom of the file, all of the landmark points  are keyed  in.
+This turned out to be quite time consuming.  It's not complicated, but it takes
+a lot of attention to detail and it's easy to mislabel the points.
+This is where having a sensible naming scheme really helps.
+Here are plots for three cameras:
+
+\newpage
+\begin{figure}[H]
+\center
+\includegraphics[width=1.00\textwidth]{Camera3_calibration_numerical.png}
+\caption*{Camera 3 Numerical Calibration}
+
+\includegraphics[width=1.00\textwidth]{Camera4_calibration_numerical.png}
+\caption*{Camera 4 Numerical Calibration}
+\end{figure}
+
+\begin{figure}[H]
+\center
+\includegraphics[width=1.00\textwidth]{Camera6_calibration_numerical.png}
+\caption*{Camera 6 Numerical Calibration}
+\end{figure}
 
 \newpage
 \section{Tracking The Ball in Pixel Space}

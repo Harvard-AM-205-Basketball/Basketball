@@ -193,7 +193,7 @@ def calibrate_cam7(transforms = None, cal_type: str = 'visual'):
     annotate_frame_line(ax, backboard_in_uv, 'r')
     # Display and save the figure    
     display(fig)
-    fig.savefig(f'../figs/{camera_name}_calibration.png', bbox_inches='tight')
+    fig.savefig(f'../figs/{camera_name}_calibration_{cal_type}.png', bbox_inches='tight')
     plt.close(fig)
 
 
@@ -232,7 +232,7 @@ def calibrate_cam2(transforms = None, cal_type: str = 'visual'):
     annotate_frame_line(ax, rim_uv, 'r')
     # Display and save the figure    
     display(fig)
-    fig.savefig(f'../figs/{camera_name}_calibration.png', bbox_inches='tight')
+    fig.savefig(f'../figs/{camera_name}_calibration_{cal_type}.png', bbox_inches='tight')
     plt.close(fig)
 
 
@@ -275,7 +275,7 @@ def calibrate_cam8(transforms = None, cal_type: str = 'visual'):
     annotate_frame_line(ax, rim_uv, 'r')
     # Display and save the figure    
     display(fig)
-    fig.savefig(f'../figs/{camera_name}_calibration.png', bbox_inches='tight')
+    fig.savefig(f'../figs/{camera_name}_calibration_{cal_type}.png', bbox_inches='tight')
     plt.close(fig)
 
 # *************************************************************************************************
@@ -323,7 +323,7 @@ def calibrate_cam4(transforms = None, cal_type: str = 'visual'):
     annotate_frame_line(ax, rim_uv, 'r')
     # Display and save the figure    
     display(fig)
-    fig.savefig(f'../figs/{camera_name}_calibration.png', bbox_inches='tight')
+    fig.savefig(f'../figs/{camera_name}_calibration_{cal_type}.png', bbox_inches='tight')
     plt.close(fig)
 
 
@@ -371,7 +371,7 @@ def calibrate_cam6(transforms = None, cal_type: str = 'visual'):
     annotate_frame_line(ax, rim_uv, 'r')
     # Display and save the figure    
     display(fig)
-    fig.savefig(f'../figs/{camera_name}_calibration.png', bbox_inches='tight')
+    fig.savefig(f'../figs/{camera_name}_calibration_{cal_type}.png', bbox_inches='tight')
     plt.close(fig)
 
 
@@ -414,7 +414,7 @@ def calibrate_cam1(transforms = None, cal_type: str = 'visual'):
     annotate_frame_dots(ax, rim_uv, 'r')
     # Display and save the figure    
     display(fig)
-    fig.savefig(f'../figs/{camera_name}_calibration.png', bbox_inches='tight')
+    fig.savefig(f'../figs/{camera_name}_calibration_{cal_type}.png', bbox_inches='tight')
     plt.close(fig)
 
 
@@ -505,13 +505,13 @@ def main():
     # assembled calibration objects
     global transforms
     # Run the calibrations
-#        transforms['Camera3'] = calibrate_cam3()
-#        transforms['Camera7'] = calibrate_cam7()
-#        transforms['Camera2'] = calibrate_cam2()
-#        transforms['Camera8'] = calibrate_cam8()
-#        transforms['Camera4'] = calibrate_cam4()
-#        transforms['Camera6'] = calibrate_cam6()
-#        transforms['Camera1'] = calibrate_cam1()
+    transforms['Camera3'] = calibrate_cam3()
+    transforms['Camera7'] = calibrate_cam7()
+    transforms['Camera2'] = calibrate_cam2()
+    transforms['Camera8'] = calibrate_cam8()
+    transforms['Camera4'] = calibrate_cam4()
+    transforms['Camera6'] = calibrate_cam6()
+    transforms['Camera1'] = calibrate_cam1()
 
 if __name__ == '__main__':
     main()
