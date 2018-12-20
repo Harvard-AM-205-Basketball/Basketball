@@ -98,6 +98,14 @@ in the time available.  It has turned out that a number of the steps, while conc
 challenging and consumed far more time than we had budgeted.  We present below everything that we were able
 to accomplish and hope for the forbearance of readers who are familiar with the slings and arrows of working on demanding problems.
 
+In the end we were successful in capturing the 3D trajectory of the ball.  
+We created a video showing a red circle tracking the ball: 
+\href{https://www.youtube.com/watch?v=RI8qft0qE50&feature=youtu.be}{Motion Capture Video}
+It shows where the simulation thinks the outline of the ball should on each frame.
+Unfortunately the version on YouTube is so blurry due to bandwidth limitations imposed by YouTube 
+that it is difficult to see the red dots.  
+Our Dropbox (linked below) has a much better high resolution version of the MP4 video.
+
 \subsection{Motivation}
 Autonomous robots including autonomous vehicles are a field of major research activity and commercial interest.
 One of the major challenges in designing these robots is sensing their environments; this is also an active research area.
@@ -1035,7 +1043,8 @@ annotate the pixel coordinates of the ball, we abandoned the effort approximatel
 72 hours before the project deadline and devised a new plan to prove out as much
 of our remaining plans as possible in the remaining time.
 We opted to hand annotate the center of the ball over all 4,391 frames for each of the 7 cameras.
-After doing this, we identified several shot attempts, to focus on with our test code before attempting to fully reconstruct the path off the ball for the entire game.
+After doing this, we identified several shot attempts, to focus on with our test code 
+before attempting to fully reconstruct the path off the ball for the entire game.
 
 While the hand annotation was painful and laborious, the data has the potential to be very useful for future work. 
 The annotated data could be used in future AM205 problem sets, or for training object trackers. 
@@ -1045,10 +1054,160 @@ While not fun, the hand annotation process was also a reminder that in some task
 
 \newpage
 \section{Tracking The Ball in World Space}
+The technique to track the ball in world space is quite similar to the approach in numerical camera calibration.
+Given a guess as to the ball position, we can compute the implied position $(u, v)$ of the ball in pixel space
+on each camera using the transformations fitted during camera calibration.
+From the pixel tracking, we have a list of cameras where the ball is visible, 
+and for those cameras, we have the known pixel positions $(u, v)$.
+That is, we sum the squares 
+$${ (u_\text{calc} - u_\text{obs})^2 + (v_\text{calc} - v_\text{obs})^2}$$
+over all cameras where the ball is visible.
+We ignore the cameras where the ball is not visible, and set up an optimization problem 
+in which we solve for $(x, y, z)$ to minimize the sum of squared error in the projected pixel positions.
+
+These calculations are carried out in the file 
+\href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/ball_track.py}
+{\texttt{ball\_track.py}}.  
+The top of the file sets up global variables and loads the data containing the pixel locations.
+The function \texttt{world2pix} takes as inputs the 3D position of the ball 
+and a mask indicating which cameras see the ball.  
+It returns an $n$ x 2 matrix of the calculated pixel positions  for only the visible cameras. \\
+The function \texttt{make\_difference\_func} is a factory.  
+It returns \texttt{difference\_func}, which will compute the difference between the projected
+and actual pixel pixel values on the visible cameras. \\
+The function \texttt{make\_objective\_func} is a factory function that returns an objective
+function ready to be optimized.  
+The inputs are the observed pixel locations of the ball on the visible cameras 
+and a mask indicating which cameras are presented.  
+This function just uses the difference function computed above 
+and then returns the sum of squared pixel error.
+
+The function \texttt{plot\_frame} makes a plot of one frame of the video
+that is ready for later annotation.
+The function \texttt{frame\_overlay} overlays a red circle 
+indicating where the simulation thinks the outline of the ball should be
+on that camera based on the solved position of the ball and the camera calibration.
+We've already recovered the estimated center of the ball.  
+An additional calculation is done to estimate the pixel radius of the ball.
+This is a simple linear function depending on the radius of the basketball,
+the distance from the camera to the ball, and the camera parameters 
+(focal length, zoom, and pixel size).  
+The function \texttt{plaot\_tableau} in analogous to the one used to make the 
+unannotated tableau frames.  It assembles six frames into one large frame,
+allowing a viewer to see all the angles at once.
+The function \texttt{frames\_overlay} overlays all the frames for a given frame number.
+If the ball is not visible on that camera, the frame is left unchanged.
+The function \texttt{save\_ball\_figs} saves the individual annotated frames for
+each camera and the annotated tableau frame.
+
+The function \texttt{track\_frame} is a driver that does all the steps in order
+to track the ball and publish the results.
+It looks up a mask of which cameras were visible and 
+the observed pixel positions on those cameras.  
+It uses them to create an objective function measuring squared pixel error.
+It performs an optimization using \texttt{scipy.minimize}.
+The initial guess was chosen to be a ``neutral'' position for a halfcourt basketball game.
+It was the top of the key at an elevation of 5 feet, which is half way between the floor and the rim.
+This point has coordinates (0, 26.0, 5.0) in feet.
+
+In addition to saving the annotated frames, this function saves the data including the 
+frame number, time, and solved for $x, y, z$ coordinates.
+Each frame is saved to a separate tiny CSV file to allow for easy parallel processing.
+
+The function \texttt{track\_frames} accepts a list of frames to be processed and a flag
+indicating whether to display a progress bar.  
+This is used by the main driver of the program.  
+A good amount of the effort in writing this program was in carefully handling details so 
+it could parallelize well.  The approach taken here has a few simple ideas.
+First, the program does not process duplicates; if you want to re-run something,
+you can delete it.  
+A centralized statistics file with solved positions at each frame is maintained.
+This aids coordination between multiple computers handling different batches at once.
+In addition, the inner functions check if an image file exists before trying to calibrate 
+a frame and then overwrite it.  
+The actual parallel processing is done using the \texttt{joblib} library and is quite simple.
+It uses the \texttt{Parallel} and \texttt{delayed} facilities in \texttt{joblib}.
+
+The Python script 
+\href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/ball_stats.py}
+{\texttt{ball\_stats.py}} assembles all of the CSV fragments with calculated positions
+into one Pandas DataFrame.  This data frame is also used to avoid processing duplicate frames.
+
+Annotating all of these frames was a very large computational job.  
+It took approximately 15 hours of total wall time, with jobs running on two computers
+nonstop except for pauses to check progress and correct errors.
+This job ran in parallel on 64 threads on both a high end deskop PC with
+an AMD Ryzen 2990-WX processor (32 cores, 64 threads) and 
+the Linux server mentioned above 40 total cores (dual Intel Xeon CPUs each with 20 cores).
 
 \newpage
-\section{Conclusions}
+\subsection{Visualizing the Results}
 
+Here are a series tableaux illustrating a medium range jump shot 
+that had good flight and visibility on multiple cameras.
+
+\begin{figure}[H]
+\center
+\includegraphics[width=1.00\textwidth]{BallTableau00880.png}
+\caption*{Frame 880: About to Shoot}
+\end{figure}
+
+\begin{figure}[H]
+\center
+\includegraphics[width=1.00\textwidth]{BallTableau00890.png}
+\caption*{Frame 890': Releasing the Ball}
+\end{figure}
+
+\begin{figure}[H]
+\center
+\includegraphics[width=1.00\textwidth]{BallTableau00900.png}
+\caption*{Frame 900: Ball in Ascent}
+\end{figure}
+
+\begin{figure}[H]
+\center
+\includegraphics[width=1.00\textwidth]{BallTableau00910.png}
+\caption*{Frame 910: Ball near Apex}
+\end{figure}
+
+\begin{figure}[H]
+\center
+\includegraphics[width=1.00\textwidth]{BallTableau00920.png}
+\caption*{Frame 920: Ball in Descent}
+\end{figure}
+
+\begin{figure}[H]
+\center
+\includegraphics[width=1.00\textwidth]{BallTableau00930.png}
+\caption*{Frame 930: Approaching the Basket}
+\end{figure}
+
+\begin{figure}[H]
+\center
+\includegraphics[width=1.00\textwidth]{BallTableau00936.png}
+\caption*{Frame 936: Basket!}
+\end{figure}
+
+\begin{figure}[H]
+\center
+\includegraphics[width=1.00\textwidth]{BallTableau00940.png}
+\caption*{Frame 940: Continuing Past the Basket}
+\end{figure}
+
+This sequence of stills shows clearly that our 3D motion capture analysis was essentially correct,
+albeit with some possible time lags due to the discretization of frame times.
+We are moderately confident that if we replicated this setup with better cameras and a higher frame
+rate that we could get sufficiently accurate motion tracking to predict whether 
+a shot attempt would go in.
+
+We thank our patient reader for tolerating so many pages.  
+It is much easier (and more fun) to absorb this information by watching a video.
+Here is a link on YouTube to a video we made of the tableau:
+\href{https://www.youtube.com/watch?v=RI8qft0qE50&feature=youtu.be}{Motion Capture Video}
+It's watchable, but the quality isn't nearly as good as watching it locally.
+The finished videos with the annotated circles are in the root of our Dropbox folder.
+
+\newpage
 \section{Acknowledgments -Michael}
 I would like to thank my teammates Nicholas and William for their steadfast dedication 
 to this project even as it exploded in difficulty and complexity. 
