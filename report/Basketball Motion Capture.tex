@@ -564,20 +564,31 @@ v&=\frac{x}{s_{x}}+960
 \end{figure}
 
 \subsection{Extrinsic vs. Intrinsic Parameters}
-The rotation matrix $R$ and the position of the camera $\bm{C}$ are considered \textbf{extrinsic parameters} in the sense that we set them. We can also obtain good estimates of what they are without doing any algebra or optimization. On the other hand, the focal length $f$ and the pixel size $s_{x}$ by $s_{y}$ are \textbf{intrinsic parameters}, which means that they are properties of the camera. While the focal length is easily obtainable from the SOSUN website (7.36 mm unzoomed), the pixel size is unknown. However, we can estimate it using least squares! \\
+The rotation matrix $R$ and the position of the camera $\bm{C}$ are considered \textbf{extrinsic parameters} in the sense that we set them. 
+We can also obtain good estimates of what they are without doing any algebra or optimization. 
+On the other hand, the focal length $f$ and the pixel size $s_{x}$ by $s_{y}$ are \textbf{intrinsic parameters}, which means that they are properties of the camera. 
+While the focal length is easily obtainable from the SOSUN website (7.36 mm unzoomed), the pixel size is unknown. However, we can estimate it using least squares! \\
 
-We know the world coordinates of several points on the court, such as the free-throw rectangle and the white square on the backboard. Given our estimates for all of the other parameters, we can solve for the image coordinates $(x, y)$ of these points relatively easily. We can also identify the pixel coordinates $(u, v)$ of these points relatively accurately by examining a given frame (the camera is stationary). We have the equations:
+We know the world coordinates of several points on the court, such as the free-throw rectangle and the white square on the backboard. 
+Given our estimates for all of the other parameters, we can solve for the image coordinates $(x, y)$ of these points relatively easily. 
+We can also identify the pixel coordinates $(u, v)$ of these points relatively accurately by examining a given frame (the camera is stationary). 
+We have the equations:
 
 \begin{align*}
 v&=\frac{x}{s_{x}}+960 \\
 u&=-\frac{y}{s_{y}}+540
 \end{align*}
 
-And we can write this as a matrix equation $\begin{pmatrix} v-960 \\ u-540 \end{pmatrix}=\begin{pmatrix} x & 0 \\ 0 & -y \end{pmatrix}\begin{pmatrix} \frac{1}{s_x} \\ \frac{1}{s_y} \end{pmatrix}$. We have many points where we know $(x, y)$ and $(v, u)$, so we can make this a least-squares problem where we solve for $\frac{1}{s_x}, \frac{1}{s_y}$!
+And we can write this as a matrix equation 
+$\begin{pmatrix} v-960 \\ u-540 \end{pmatrix}=\begin{pmatrix} x & 0 \\ 0 & -y \end{pmatrix}\begin{pmatrix} \frac{1}{s_x} \\ \frac{1}{s_y} \end{pmatrix}$. 
+We have many points where we know $(x, y)$ and $(v, u)$, so we can make this a least-squares problem where we solve for $\frac{1}{s_x}, \frac{1}{s_y}$!
 
-\[\begin{pmatrix} v_1-960 \\ u_1-540 \\ v_2-960 \\ u_2-540 \\ \hdots \end{pmatrix}=\begin{pmatrix} x_1 & 0 \\ 0 & -y_1 \\ x_2 & 0 \\ 0 & -y_2 \\ \hdots & \hdots \end{pmatrix}\begin{pmatrix} \frac{1}{s_x} \\ \frac{1}{s_y} \end{pmatrix}\]
+\[\begin{pmatrix} v_1-960 \\ u_1-540 \\ v_2-960 \\ u_2-540 \\ \hdots \end{pmatrix}=
+\begin{pmatrix} x_1 & 0 \\ 0 & -y_1 \\ x_2 & 0 \\ 0 & -y_2 \\ \hdots & \hdots \end{pmatrix}
+\begin{pmatrix} \frac{1}{s_x} \\ \frac{1}{s_y} \end{pmatrix}\]
 
-Assuming we have estimated all of the other parameters correctly, we should be able to get accurate numbers for $s_x, s_y$, allowing us to transform any point on the court into pixels.
+Assuming we have estimated all of the other parameters correctly, we should be able to get accurate numbers for $s_x, s_y$, 
+allowing us to transform any point on the court into pixels.
 
 \subsection{An example, using Camera 3}
 Using Camera 1, we can see that Camera 3 is outside of the court, slightly behind and to the right of where it is supposed to be on the diagram. 
@@ -590,7 +601,8 @@ The point 2 feet below the front of the rim has world coordinates $(0, 41, 8)$, 
  Our assumption is that the $x$-axis has a 3rd coordinate of 0 and points towards the northeast, so it must be of the form $(42.5, 22, 0)$ 
  in order to be orthogonal to $z$ (of course, it could be any scalar multiple of this). 
  In Python, we normalize our two vectors and then take $x\times z$ to get the $y$-axis. 
- Our rotation matrix is $R=\begin{pmatrix} \vec{x}_n \\ \vec{y}_n \\ \vec{z}_n \end{pmatrix}$ where the $n$ subscript indicates that our vectors are normalized to have norm 1. \\
+ Our rotation matrix is $R=\begin{pmatrix} \vec{x}_n \\ \vec{y}_n \\ \vec{z}_n \end{pmatrix}$ where the $n$ subscript 
+ indicates that our vectors are normalized to have norm 1. \\
 
 Note that our choice to look at the point 2 feet below the front of the rim was arbitrary, as the camera $z$-axis represents a ray. 
 However, it was the easiest choice because it was a point on the ray with coordinates that were relatively easy to estimate. \\
@@ -834,7 +846,11 @@ of our remaining plans as possible in the remaining time.
 We opted to hand annotate the center of the ball over all 4,391 frames for each of the 7 cameras.
 After doing this, we identified several shot attempts, to focus on with our test code before attempting to fully reconstruct the path off the ball for the entire game.
 
-While the hand annotation was painful and laborious, the data has the potential to be very useful for future work. The annotated data could be used in future AM205 problem sets, or for training object trackers. If we had more time, we could have used the hand annotation to compare the performance of the OpenCV motion trackers, or to train our own custom motion tracker and evaluate its performance. While not fun, the hand annotation process was also a reminder that in some tasks, humans still beat machines, albeit very slowly.
+While the hand annotation was painful and laborious, the data has the potential to be very useful for future work. 
+The annotated data could be used in future AM205 problem sets, or for training object trackers. 
+If we had more time, we could have used the hand annotation to compare the performance of the OpenCV motion trackers, 
+or to train our own custom motion tracker and evaluate its performance. 
+While not fun, the hand annotation process was also a reminder that in some tasks, humans still beat machines, albeit very slowly.
 
 
 \newpage
