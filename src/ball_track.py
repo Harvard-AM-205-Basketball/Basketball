@@ -10,6 +10,7 @@ Tue Dec 18 23:48:03 2018
 """
 
 import sys
+import os
 from joblib import Parallel, delayed
 import numpy as np
 from numpy import pi
@@ -393,6 +394,11 @@ def track_frames(frame_nums, progress_bar: bool = False):
     # Wrap the frame_nums in tqdm if progress_bar was specified
     frame_iter = tqdm(frame_nums) if progress_bar else frame_nums    
     for n in frame_iter:
+        # The filename
+        fname = f'{path_ball_tableau }/BallTableau{n:05d}.png'
+        # If this file already exists, skip it and continue
+        if os.path.isfile(fname):
+            continue
         track_frame(n)
 
     
