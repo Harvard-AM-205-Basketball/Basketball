@@ -946,6 +946,14 @@ At the bottom of the file, all of the landmark points  are keyed  in.
 This turned out to be quite time consuming.  It's not complicated, but it takes
 a lot of attention to detail and it's easy to mislabel the points.
 This is where having a sensible naming scheme really helps.
+
+The results of the numerical calibration were very solid.
+Interestingly, they were only a little better than the results from the visual calibration.
+As an example, the numerical calibration for camera 3 moved it from (20.0, 0.0, 5.2)
+to (19.38, 0.15, 5.180.  It reduced the RMS pixel error from 7.845 to 7.532.
+Our best guess is that most of these errors were some kind of misspecification
+(e.g. wrong measurements or pixel positions), not numerical errors.
+
 Here are plots for three cameras:
 
 \newpage
