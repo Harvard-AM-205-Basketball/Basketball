@@ -20,7 +20,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from IPython.display import display
 from am205_utils import arange_inc
-from typing import List
+from typing import List, Dict
 
 # *************************************************************************************************
 # Set plot style
@@ -87,12 +87,15 @@ def make_circle(center: np.ndarray, radius: float, num_points: int):
 
 
 # *************************************************************************************************
-def make_court_lines():
-    """Generate world coordinates of the lines painted red on the basketball court."""
+def make_court():
+    """Generate world coordinates of the lines and landmarks on the basketball court."""
     # Set the step size for line painting
     step_size: float = 0.20
     # https://en.wikipedia.org/wiki/Basketball_court
     # https://www.sportsknowhow.com/basketball/dimensions/high-school-basketball-court-dimensions.html
+    
+    # Table of landmark points
+    landmarks: Dict[str, np.ndarray] = dict()
     
     # The main perimeter of the court is just a big rectangle spanning the four corners
     court_NW_x: float = -court_hw
@@ -110,16 +113,31 @@ def make_court_lines():
     court_SE = np.array([court_SE_x, court_SE_y, 0.0])
     court_SW = np.array([court_SW_x, court_SW_y, 0.0])
     
+    # Save landmarks
+    landmarks['court_NW'] = court_NW
+    landmarks['court_NE'] = court_NE
+    landmarks['court_SE'] = court_SE
+    landmarks['court_SW'] = court_SW
+    
     # Generate the lines around the perimeter of the court
     perimeter = make_polygon([court_NW, court_NE, court_SE, court_SW], step_size)
     
     # The half-court line
     half_court_W = np.array([-court_hw, 0.0, 0.0])
     half_court_E = np.array([+court_hw, 0.0, 0.0])
+    # The landmarks
+    landmarks['half_court_W'] = half_court_W
+    landmarks['half_court_E'] = half_court_E
+    # The line
     half_court = make_line(half_court_W, half_court_E, step_size)
     
     # The center circle is 6 feet in radius
     center_circle = make_circle(np.array([0.0, 0.0, 0.0]), 6.0, 180)
+    landmarks['center'] = np.array([0.0, 0.0, 0.0])
+    landmarks['center_W'] = np.array([-6.0,  0.0, 0.0])
+    landmarks['center_E'] = np.array([+6.0,  0.0, 0.0])
+    landmarks['center_N'] = np.array([ 0.0, +6.0, 0.0])
+    landmarks['center_S'] = np.array([ 0.0, -6.0, 0.0])
     
     # The "key" in front of the basket has four corners
     # The x coordinates on the left and right are -1/2 to +1/2 of the width of the key
@@ -136,16 +154,35 @@ def make_court_lines():
     key_SE_y: float = court_hh - key_h
     
     # Wrap up start and end point at corners of the key into 3D arrays
-    key_NW = np.array([key_NW_x, key_NW_y, 0.0])
-    key_NE = np.array([key_NE_x, key_NE_y, 0.0])
-    key_SW = np.array([key_SW_x, key_SW_y, 0.0])
-    key_SE = np.array([key_SE_x, key_SE_y, 0.0])
+    key_N_NW = np.array([key_NW_x, key_NW_y, 0.0])
+    key_N_NE = np.array([key_NE_x, key_NE_y, 0.0])
+    key_N_SW = np.array([key_SW_x, key_SW_y, 0.0])
+    key_N_SE = np.array([key_SE_x, key_SE_y, 0.0])
+    key_N_top = np.array([0, +court_hh - key_h - key_w/2.0, 0.0])
+    
+    # Corners of the southern key
+    key_S_NW = np.array([key_NW_x, -key_NW_y, 0.0])
+    key_S_NE = np.array([key_NE_x, -key_NE_y, 0.0])
+    key_S_SW = np.array([key_SW_x, -key_SW_y, 0.0])
+    key_S_SE = np.array([key_SE_x, -key_SE_y, 0.0])
+    key_S_top = np.array([0, -court_hh + key_h + key_w/2.0, 0.0])
+    
+    # Save landmarks
+    landmarks['key_N_NW'] = key_N_NW
+    landmarks['key_N_NE'] = key_N_NE
+    landmarks['key_N_SW'] = key_N_SW
+    landmarks['key_N_SE'] = key_N_SE
+    landmarks['key_N_top'] = key_N_top
+    
+    landmarks['key_S_NW'] = key_S_NW
+    landmarks['key_S_NE'] = key_S_NE
+    landmarks['key_S_SW'] = key_S_SW
+    landmarks['key_S_SE'] = key_S_SE
+    landmarks['key_S_top'] = key_S_top
     
     # Sample all four lines on the key
-    key_box_N = make_polygon([key_NW, key_NE, key_SE, key_SW], step_size)
-    # Build "southern" key box by symmetry with "northern" one
-    key_box_S = key_box_N.copy()
-    key_box_S[:,1] = -key_box_N[:,1]
+    key_box_N = make_polygon([key_N_NW, key_N_NE, key_N_SE, key_N_SW], step_size)
+    key_box_S = make_polygon([key_S_SW, key_S_SE, key_S_NE, key_S_NW], step_size)
     
     # The semi-circle on top of the key
     key_circle_radius = key_w / 2.0
@@ -153,6 +190,12 @@ def make_court_lines():
     key_circle_center_S = np.array([0.0, -court_hh + key_h, 0.0])
     key_circle_N = make_arc(key_circle_center_N, key_circle_radius, 1*pi, 2*pi, 360)
     key_circle_S = make_arc(key_circle_center_S, key_circle_radius, 0*pi, 1*pi, 360)
+    
+    # Save landmarks
+    key_top_N = key_circle_center_N + np.array([0.0, -key_circle_radius, 0.0])
+    key_top_S = key_circle_center_S + np.array([0.0, +key_circle_radius, 0.0])
+    landmarks['key_top_N'] = key_top_N
+    landmarks['key_top_S'] = key_top_S
 
     # The y coordinates of both baskets; they are 43 feet from the center
     # (the height of a half court is 47 feet, and the basket is 4 feet inside the back line)
@@ -187,29 +230,63 @@ def make_court_lines():
     # x coordinates +/- 3 feet (it is 72 inches wide and symmetrical)
     # y coordinates 43 (47 feet half court minus 4 feet forward)
     # z coordinates 9.5 to 13.0 feet; it is 42 inches high and starts 6 inches under the rim)
-    backboard_BL = np.array([-3.0, basket_y_N, basket_h - 0.5])
-    backboard_BR = np.array([+3.0, basket_y_N, basket_h - 0.5])
-    backboard_TL = np.array([-3.0, basket_y_N, basket_h + 3.0])
-    backboard_TR = np.array([+3.0, basket_y_N, basket_h + 3.0])
+    backboard_N_BL = np.array([-3.0, basket_y_N, basket_h - 0.5])
+    backboard_N_BR = np.array([+3.0, basket_y_N, basket_h - 0.5])
+    backboard_N_TL = np.array([-3.0, basket_y_N, basket_h + 3.0])
+    backboard_N_TR = np.array([+3.0, basket_y_N, basket_h + 3.0])
+
+    # Need to sign flop BOTH x and y for southern backboard!
+    backboard_S_BL = np.array([+3.0, basket_y_S, basket_h - 0.5])
+    backboard_S_BR = np.array([-3.0, basket_y_S, basket_h - 0.5])
+    backboard_S_TL = np.array([+3.0, basket_y_S, basket_h + 3.0])
+    backboard_S_TR = np.array([-3.0, basket_y_S, basket_h + 3.0])
+
+
     # Wrap up the four corners into a rectangle
-    backboard_N = make_polygon([backboard_BL, backboard_TL, backboard_TR, backboard_BR], 0.25)
-    # Build "southern" backboard square backboard_in by symmetry with "northern" one
-    backboard_S = backboard_N.copy()
-    backboard_S[:,1] = -backboard_N[:,1]    
+    backboard_N = make_polygon([backboard_N_BL, backboard_N_TL, backboard_N_TR, backboard_N_BR], 0.25)
+    backboard_S = make_polygon([backboard_S_BL, backboard_S_TL, backboard_S_TR, backboard_S_BR], 0.25)
+    
+    # Save landmarks
+    landmarks['backboard_N_BL'] = backboard_N_BL
+    landmarks['backboard_N_BR'] = backboard_N_BR
+    landmarks['backboard_N_TL'] = backboard_N_TL
+    landmarks['backboard_N_TR'] = backboard_N_TR
+
+    landmarks['backboard_S_BL'] = backboard_S_BL
+    landmarks['backboard_S_BR'] = backboard_S_BR
+    landmarks['backboard_S_TL'] = backboard_S_TL
+    landmarks['backboard_S_TR'] = backboard_S_TR
     
     # The small white square in the backboard has 
     # x coordinates +/- 1 foot (it is 24 inches wide and symmetrical)
     # y coordinates 43 (47 feet half court minus 4 feet forward)
-    # z coordinates 10 to 11.5 (the rim is 10.0 feet high and the box is 18 inches tall)
-    backboard_in_BL = np.array([-1.0, basket_y_N, basket_h])
-    backboard_in_BR = np.array([+1.0, basket_y_N, basket_h])
-    backboard_in_TL = np.array([-1.0, basket_y_N, basket_h + 1.5])
-    backboard_in_TR = np.array([+1.0, basket_y_N, basket_h + 1.5])
+    # z coordinates 10 to 11.5 (the rim is 10.0 feet high and the box is 18 inches tall)    
+    backboard_in_N_BL = np.array([-1.0, basket_y_N, basket_h])
+    backboard_in_N_BR = np.array([+1.0, basket_y_N, basket_h])
+    backboard_in_N_TL = np.array([-1.0, basket_y_N, basket_h + 1.5])
+    backboard_in_N_TR = np.array([+1.0, basket_y_N, basket_h + 1.5])
+
+    # Flip sign of x for southern backboard
+    backboard_in_S_BL = np.array([+1.0, basket_y_S, basket_h])
+    backboard_in_S_BR = np.array([-1.0, basket_y_S, basket_h])
+    backboard_in_S_TL = np.array([+1.0, basket_y_S, basket_h + 1.5])
+    backboard_in_S_TR = np.array([-1.0, basket_y_S, basket_h + 1.5])    
+
+    # Save landmarks
+    landmarks['backboard_in_N_BL'] = backboard_in_N_BL
+    landmarks['backboard_in_N_BR'] = backboard_in_N_BR
+    landmarks['backboard_in_N_TL'] = backboard_in_N_TL
+    landmarks['backboard_in_N_TR'] = backboard_in_N_TR
+
+    landmarks['backboard_in_S_BL'] = backboard_in_S_BL
+    landmarks['backboard_in_S_BR'] = backboard_in_S_BR
+    landmarks['backboard_in_S_TL'] = backboard_in_S_TL
+    landmarks['backboard_in_S_TR'] = backboard_in_S_TR
+    
+
     # Wrap up the four corners into a rectangle
-    backboard_in_N = make_polygon([backboard_in_BL, backboard_in_TL, backboard_in_TR, backboard_in_BR], 0.25)
-    # Build "southern" backboard square backboard_in by symmetry with "northern" one
-    backboard_in_S = backboard_in_N.copy()
-    backboard_in_S[:,1] = -backboard_in_N[:,1]    
+    backboard_in_N = make_polygon([backboard_in_N_BL, backboard_in_N_TL, backboard_in_N_TR, backboard_in_N_BR], 0.25)
+    backboard_in_S = make_polygon([backboard_in_S_BL, backboard_in_S_TL, backboard_in_S_TR, backboard_in_S_BR], 0.25)
 
     # The rim
     # https://www.livestrong.com/article/405043-basketball-rim-measurements/
@@ -227,6 +304,10 @@ def make_court_lines():
     rim_center_S = np.array([0.0, basket_y_S + 1.25, basket_h])
     rim_N = make_circle(rim_center_N, rim_radius, 180)
     rim_S = make_circle(rim_center_S, rim_radius, 180)
+
+    # Save landmarks
+    landmarks['rim_center_N'] = rim_center_N
+    landmarks['rim_center_S'] = rim_center_S
 
     # All the lines on the floor
     floor = np.vstack([perimeter, half_court, center_circle, key_box_N, key_box_S,
@@ -253,7 +334,19 @@ def make_court_lines():
     lines['rim_N'] = rim_N
     lines['rim_S'] = rim_S
 
+    return lines, landmarks
+
+# *************************************************************************************************
+# Put a single copy of the lines and landmarks into global memory
+lines, landmarks = make_court()
+
+# Convenience functions for outside callers
+def make_court_lines():
     return lines
+
+
+def make_court_landmarks():
+    return landmarks
 
 
 # *************************************************************************************************
@@ -326,8 +419,6 @@ def visualize_court(lines):
     ax.plot(backboard_S[:,0], backboard_S[:,1], color='k', label='rim',
             linewidth=4, marker=marker, markersize=markersize)
 
-
-    
     # Add the 8 cameras
     ax.plot(0, +court_hh, 'o', color='b', markersize=10)
     ax.plot(+court_hw, +court_hh, 'o', color='b', markersize=10)

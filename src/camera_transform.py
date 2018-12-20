@@ -107,23 +107,8 @@ def xyz2sph(x: np.ndarray, y: np.ndarray, z: np.ndarray):
 
 
 # *************************************************************************************************
-def make_transforms(cam_pos: np.ndarray, cam_point: np.ndarray, zoom: float):
-    """
-    Make two coordinate transform for a camera
-    INPUTS:
-    cam_pos:   the position of the camera in world coordinates
-    cam_point: a point towards which the camera is pointed in world coordinates
-    focus:     the focal length of the camera
-    zoom:      the zoom setting of the camera
-    Returns:
-    two transform function that sends (U, V, W) coordinates of an object in the world frame
-    to output in the camera frame.
-    transform_xy maps to (x, y) coordinates of its image in the camera's focal plane
-    transform_pixel maps to (u, v) coordinates of its image in pixel space
-    """
-    # The effective focus is the manufacturing focus multiplied by the zoom
-    focus_eff = focus * zoom
-    
+def rot_from_points(cam_pos: np.ndarray, cam_point: np.ndarray):
+    """Generate a 3x3 rotation matrix from camera position and position it is pointing at"""
     # Camera z-axis in world coords is the difference between 
     # where the camera is pointing and where it is located
     z = cam_point - cam_pos
@@ -140,6 +125,28 @@ def make_transforms(cam_pos: np.ndarray, cam_point: np.ndarray, zoom: float):
     y = np.cross(x,z)
     # Build rotation matrix and its transpose
     R = np.vstack((x,y,z))
+    return R
+
+
+def make_transforms(cam_pos: np.ndarray, cam_point: np.ndarray, zoom: float):
+    """
+    Make two coordinate transform for a camera
+    INPUTS:
+    cam_pos:   the position of the camera in world coordinates
+    cam_point: a point towards which the camera is pointed in world coordinates
+    focus:     the focal length of the camera
+    zoom:      the zoom setting of the camera
+    Returns:
+    two transform function that sends (U, V, W) coordinates of an object in the world frame
+    to output in the camera frame.
+    transform_xy maps to (x, y) coordinates of its image in the camera's focal plane
+    transform_pixel maps to (u, v) coordinates of its image in pixel space
+    """
+    # The effective focus is the manufacturing focus multiplied by the zoom
+    focus_eff = focus * zoom
+
+    # Generate the 3x3 rotation matrix between this camera and the world frame
+    R = rot_from_points(cam_pos, cam_point)
     Rt = np.transpose(R)
 
     # The transform function to (x, y) coordinates on the camera
@@ -197,3 +204,162 @@ def make_transform_fg(cam_pos: np.ndarray, cam_point: np.ndarray, zoom: float):
     transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
     # Return only the UNROUNDED (floating point) pixel transform
     return transform_fg
+
+
+# *************************************************************************************************
+#    def make_rot_ypr(alpha: float, beta: float, gamma: float):
+#        """Make a 3x3 rotation matrix with the yaw, pitch and roll angles above"""
+#        # The rotation about x has angle gamma
+#        Rx = np.array([\
+#                [1.0, 0.0, 0.0],
+#                [0.0, +cos(gamma), -sin(gamma)],
+#                [0.0, +sin(gamma), +cos(gamma)]])
+
+
+def rot_from_axis(u: np.ndarray, theta: float):
+    """Given a roation axis u and angle theta, generate the 3x3 rotation matrix"""
+    # https://en.wikipedia.org/wiki/Rotation_matrix
+    # See the section "Rotation matrix from axis and angle"
+
+    # Extract x, y, and z from u
+    ux, uy, uz = u
+    
+    # Reshape u into a column vector
+    u = u.reshape((3,1))
+    
+    # Compute the outer product of u and u transpose i.e. u ⊗ u
+    uut = u @ u.T
+    
+    # Compute the cross product matrix of u
+    u_cross = np.array([\
+                        [0.0, -uz, +uy],
+                        [+uz, 0.0, -ux],
+                        [-uy, +ux, 0.0]])
+    
+    # The 3x3 identity
+    I3 = np.identity(3)
+    
+    # Assemble the components of the roration matrix R
+    R = cos(theta) * I3 + sin(theta) * u_cross + (1.0 - cos(theta)) * uut
+    return R
+
+
+def rotation_axis(R):
+    """Determine the rotation axis u and angle theta of a 3x3 matrix R"""
+    # https://en.wikipedia.org/wiki/Rotation_matrix
+    # See the section "Determining the Axis
+
+    # Flip R if it has negative determinant
+    if np.linalg.det(R) < 0:
+        R = -1.0 * R
+
+    # Get the first eigenvector of R
+    eig_vals, eig_vecs = np.linalg.eig(R)
+    # Find the single real eigenvalue of +/- 1
+    eig_val = sorted(eig_vals, key= lambda x: abs(x.imag))[0]
+    idx = np.argmax(eig_vals == eig_val)
+    # The eigenvector u matches the index of the real eigenvalue
+    u = np.real(eig_vecs[idx])
+    # The rotation angle from the trace:
+    # trace(R) = 1 + 2 cos(theta) --> theta = arccos(trace(R) - 1) / 2
+    cos_theta = (np.trace(R) - 1.0) / 2.0
+    # Two candidates of theta are +/- results of the arc cos
+    theta = np.arccos(cos_theta)
+
+    # Recovered matrix with both positive and negative angles
+    R_pos = rot_from_axis(u, +theta)
+    R_neg = rot_from_axis(u, -theta)
+    
+    # Error for positive and negative
+    err_pos = np.linalg.norm(R - R_pos)
+    err_neg = np.linalg.norm(R - R_neg)
+    
+    # Choose theta_pos or theta_neg
+    if err_neg < err_pos:
+        theta = - theta
+    
+    return u, theta
+    
+# *************************************************************************************************
+def rot_from_angles(theta: float, phi: float):
+    """Make a 3x3 rotation matrix from two spherical angles theta and phi"""
+    # Generate a point z on the unit sphere for these spherical angles
+    z = sph2xyz(theta, phi)
+
+    # Camera x-axis in world coords
+    x = np.array([z[1], -z[0], 0.0])
+       
+    # Get y-axis via cross product
+    y = np.cross(x,z)
+    # Build rotation matrix and its transpose
+    R = np.vstack((x,y,z))
+    return R
+
+
+def sph_from_points(cam_pos, cam_point):
+    """Compute the spherical angles theta and phi from the camera position and aim point"""
+    # Displacement from where the camera to where it is pointing
+    z = cam_point - cam_pos
+    # Compute spherical coordinates
+    return xyz2sph(z[0], z[1], z[2])
+
+
+def make_transforms_angle(cam_pos: np.ndarray, theta: float, phi: float, zoom: float):
+    """
+    Make two coordinate transform for a camera
+    INPUTS:
+    cam_pos:   the position of the camera in world coordinates
+    theta:     orientation of the camera in spherical coordinates (direction in XY plane where it is pointing)
+    phi:       orientation of the camera in spherical coordinates (direction away from north pole it is pointing)
+    rho:       angle of tilt around the z-axis
+    focus:     the focal length of the camera
+    zoom:      the zoom setting of the camera
+    Returns:
+    two transform function that sends (U, V, W) coordinates of an object in the world frame
+    to output in the camera frame.
+    transform_xy maps to (x, y) coordinates of its image in the camera's focal plane
+    transform_pixel maps to (u, v) coordinates of its image in pixel space
+    """
+    # The effective focus is the manufacturing focus multiplied by the zoom
+    focus_eff = focus * zoom
+    
+    # Determine the direction u that the camera is pointing in from theta and phi.  See
+    # https://en.wikipedia.org/wiki/Rotation_matrix
+    
+    # Build rotation matrix and its transpose
+    R = rot_from_angles(theta, phi)
+    Rt = np.transpose(R)
+
+    # The transform function to (x, y) coordinates on the camera
+    def transform_xy(object_pos):
+        """The transform for this camera"""
+        # Reshape the object if necessary so it's an Nx3 matrix
+        object_pos = object_pos.reshape((-1,3))
+        # Compute the position of this object relative to the camera, in the world frame (i.e. coordinates UVW)
+        object_UVW = object_pos - cam_pos
+        # Apply the rotation Rt to the local object coordinates 
+        # to get the position of this object in the camera frame (i.e. coordinates XYZ)
+        object_XYZ = np.matmul(object_UVW, Rt)
+        # Distance of this object in the Z-plane
+        object_Z: float = object_XYZ[:,2]
+        # Convert to 2D using focal length and zoom
+        scaler = np.reshape(focus_eff / object_Z, (-1, 1))
+        object_xy = scaler * object_XYZ[:,0:2]
+        # This transform returns (x, y) coordinates of objects
+        return object_xy
+    
+    # The transform function to (u, v) pixel locations
+    def transform_uv(object_pos):
+        """The transform to pixel space"""
+        return cam2pix(transform_xy(object_pos))
+    
+    # The transform function to (u, v) pixel locations
+    def transform_fg(object_pos):
+        """The transform to pixel space"""
+        return cam2pix_f(transform_xy(object_pos))
+    
+    # Return the assembled transform
+    return transform_xy, transform_uv, transform_fg
+
+
+    

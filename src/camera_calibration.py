@@ -17,7 +17,7 @@ from image_utils import load_frame
 from basketball_court import make_court_lines
 from camera_transform import make_transforms
 from am205_utils import range_inc, arange_inc
-from typing import List
+from typing import List, Optional
 
 
 # *************************************************************************************************
@@ -106,17 +106,20 @@ rim_S = court_lines['rim_S']
 
 
 # *************************************************************************************************
-def calibrate_cam3():
+def calibrate_cam3(transforms = None, cal_type: str = 'visual'):
     """Calibration for camera 3"""
     # Name of this camera
-    camera_name = 'Camera3'
-    
+    camera_name = 'Camera3'    
     # Position and orientation of camera 
     cam_pos = cam_pos_tbl[camera_name]
     cam_point = cam_point_tbl[camera_name]
     zoom = zoom_tbl[camera_name]
-    # Transform for camera 3
-    transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
+
+    # Transform for this camera - either input or calculated
+    if transforms is None:
+        transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
+    else:
+        transform_xy, transform_uv, transform_fg = transforms
     
     # Apply the transform for camera 3 to various shapes of interest
     # Convert the xy positions to uv pixel locations
@@ -143,23 +146,27 @@ def calibrate_cam3():
     annotate_frame_line(ax, backboard_in_uv, 'r')
     # Display and save the figure    
     display(fig)
-    fig.savefig(f'../figs/{camera_name}_calibration.png', bbox_inches='tight')
+    # fig.savefig(f'../figs/{camera_name}_calibration.png', bbox_inches='tight')
+    fig.savefig(f'../figs/{camera_name}_calibration_{cal_type}.png', bbox_inches='tight')
     plt.close(fig)
 
     # Return the fitted transforms
     return transform_xy, transform_uv, transform_fg
 
-def calibrate_cam7():
+def calibrate_cam7(transforms = None, cal_type: str = 'visual'):
     """Calibration for camera 7"""
     # Name of this camera
-    camera_name = 'Camera7'
-    
+    camera_name = 'Camera7'    
     # Position and orientation of camera 
     cam_pos = cam_pos_tbl[camera_name]
     cam_point = cam_point_tbl[camera_name]
     zoom = zoom_tbl[camera_name]
-    # Transform for camera 7
-    transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
+
+    # Transform for this camera - either input or calculated
+    if transforms is None:
+        transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
+    else:
+        transform_xy, transform_uv, transform_fg = transforms
     
     # Apply the transform for camera 3 to various shapes of interest
     # Convert the xy positions to uv pixel locations
@@ -191,19 +198,22 @@ def calibrate_cam7():
 
 
 # *************************************************************************************************
-def calibrate_cam2():
+def calibrate_cam2(transforms = None, cal_type: str = 'visual'):
     """Calibration for camera 2"""
     # Name of this camera
     camera_name = 'Camera2'
-    
     # Position and orientation of camera 
     cam_pos = cam_pos_tbl[camera_name]
     cam_point = cam_point_tbl[camera_name]
     zoom = zoom_tbl[camera_name]
-    # Transform for camera 2
-    transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
+
+    # Transform for this camera - either input or calculated
+    if transforms is None:
+        transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
+    else:
+        transform_xy, transform_uv, transform_fg = transforms
     
-    # Apply the transform for camera 3 to various shapes of interest
+    # Apply the transform for camera 2 to various shapes of interest
     # Convert the xy positions to uv pixel locations
     vertical_uv = transform_uv(vertical_N)
     backboard_uv = transform_uv(backboard_N)
@@ -227,17 +237,20 @@ def calibrate_cam2():
 
 
 
-def calibrate_cam8():
+def calibrate_cam8(transforms = None, cal_type: str = 'visual'):
     """Calibration for camera 8"""
     # Name of this camera
     camera_name = 'Camera8'
-    
     # Position and orientation of camera 
     cam_pos = cam_pos_tbl[camera_name]
     cam_point = cam_point_tbl[camera_name]
     zoom = zoom_tbl[camera_name]
-    # Transform for camera 8
-    transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
+
+    # Transform for this camera - either input or calculated
+    if transforms is None:
+        transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
+    else:
+        transform_xy, transform_uv, transform_fg = transforms
     
     # Apply the transform for camera 3 to various shapes of interest
     # Convert the xy positions to uv pixel locations
@@ -266,17 +279,20 @@ def calibrate_cam8():
     plt.close(fig)
 
 # *************************************************************************************************
-def calibrate_cam4():
+def calibrate_cam4(transforms = None, cal_type: str = 'visual'):
     """Calibration for camera 4"""
     # Name of this camera
     camera_name = 'Camera4'
-    
     # Position and orientation of camera 
     cam_pos = cam_pos_tbl[camera_name]
     cam_point = cam_point_tbl[camera_name]
     zoom = zoom_tbl[camera_name]
-    # Transform for camera 4
-    transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
+
+    # Transform for this camera - either input or calculated
+    if transforms is None:
+        transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
+    else:
+        transform_xy, transform_uv, transform_fg = transforms
     
     # Apply the transform for camera 3 to various shapes of interest
     # Convert the xy positions to uv pixel locations
@@ -311,17 +327,20 @@ def calibrate_cam4():
     plt.close(fig)
 
 
-def calibrate_cam6():
+def calibrate_cam6(transforms = None, cal_type: str = 'visual'):
     """Calibration for camera 6"""
     # Name of this camera
     camera_name = 'Camera6'
-    
-    # Position and orientation of camera
+    # Position and orientation of camera 
     cam_pos = cam_pos_tbl[camera_name]
     cam_point = cam_point_tbl[camera_name]
     zoom = zoom_tbl[camera_name]
-    # Transform for camera 6
-    transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
+
+    # Transform for this camera - either input or calculated
+    if transforms is None:
+        transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
+    else:
+        transform_xy, transform_uv, transform_fg = transforms
     
     # Apply the transform for camera 3 to various shapes of interest
     # Convert the xy positions to uv pixel locations
@@ -357,17 +376,20 @@ def calibrate_cam6():
 
 
 # *************************************************************************************************
-def calibrate_cam1():
+def calibrate_cam1(transforms = None, cal_type: str = 'visual'):
     """Calibration for camera 1"""
     # Name of this camera
-    camera_name = 'Camera1'
-    
-    # Position and orientation of camera
+    camera_name = 'Camera1'    
+    # Position and orientation of camera 
     cam_pos = cam_pos_tbl[camera_name]
     cam_point = cam_point_tbl[camera_name]
     zoom = zoom_tbl[camera_name]
-    # Transform for camera 6
-    transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
+
+    # Transform for this camera - either input or calculated
+    if transforms is None:
+        transform_xy, transform_uv, transform_fg = make_transforms(cam_pos, cam_point, zoom)
+    else:
+        transform_xy, transform_uv, transform_fg = transforms
     
     # Apply the transform for camera 3 to various shapes of interest
     # Convert the xy positions to uv pixel locations
@@ -483,13 +505,13 @@ def main():
     # assembled calibration objects
     global transforms
     # Run the calibrations
-    transforms['Camera3'] = calibrate_cam3()
-    transforms['Camera7'] = calibrate_cam7()
-    transforms['Camera2'] = calibrate_cam2()
-    transforms['Camera8'] = calibrate_cam8()
-    transforms['Camera4'] = calibrate_cam4()
-    transforms['Camera6'] = calibrate_cam6()
-    transforms['Camera1'] = calibrate_cam1()
+#        transforms['Camera3'] = calibrate_cam3()
+#        transforms['Camera7'] = calibrate_cam7()
+#        transforms['Camera2'] = calibrate_cam2()
+#        transforms['Camera8'] = calibrate_cam8()
+#        transforms['Camera4'] = calibrate_cam4()
+#        transforms['Camera6'] = calibrate_cam6()
+#        transforms['Camera1'] = calibrate_cam1()
 
 if __name__ == '__main__':
     main()
