@@ -440,20 +440,24 @@ the waves didn't line up that tightly.
 The second attempt had two phases and was successful.  The first phase was very low tech:
 by listening to the seven WAV files, we estimated the lags between them to a resolution of approximately one second.
 This was done by noting the times when audible phrases were spoken.  
-(``I'm going to check the cameras'' and ``oh, dude!'').
+(``I'm going to check the other cameras'' and ``oh, dude!'' were uttered 
+around the 5 and 26 second marks of the synchronized movie.).
 The signals were approximately aligned using these preliminary lags.
 We then applied a Fast Fourier Transform to the signals to estimate the sound environment during that window.
 The audio feed was sampled at 48,000 Hz.  
+
 We referred to the discussion and code in 
 \href{https://engineersportal.com/blog/2018/9/13/audio-processing-in-python-part-i-sampling-and-the-fast-fourier-transform}{audio processing in python}
 when implementing this solution.
 We selected a window size of $2^{12} = 4096$ pulses, corresponding to 0.0853 seconds.
 (The FFT is most efficient when the window size is a power of 2; a sound window of roughly 0.1 seconds is a useful guideline.)
 These windows were sampled with a spacing of 1024 pulses, corresponding to a temporal resolution of 0.0213 seconds. 
-This is small enough compared to the 0.033 seconds between frames at 30 FPS that if done correctly,
-it should allow us to synchronize to the nearest frame.  
+This is small enough compared to the 0.033 seconds between frames at 30 FPS that 
+if done correctly, it should allow us to synchronize to the nearest frame.  
 An audio feed of 165 seconds was thus processed into approximately 7,800 overlapping windows.
 Each window was characterized by a vector of 4096 numbers from the FFT output.
+The soundscape of the basketball game had a lot of low frequency pulses from the dribbling of the
+basketball, and occasional high frequency squeaks of sneaker rubber on the wood floor.
 Here is a visualization of the sound frequency profile at camera 1 on the 100th bucket (about 2.0 seconds):
 \begin{figure}[H]
 \center
@@ -464,7 +468,11 @@ After each sound signal is converted to a Fourier spectrum,
 the spectra are then convolved against each other to find the lag between signals.
 In this case, rather than taking the dot product of two scalar functions of time, 
 we are taking the dot product of two vectors containing the amplitude of the 
-signal at different frequencies on the spectrum.  
+signal at different frequencies on the spectrum.
+The Fourier coefficient at each frequency is multiplied in the two signals;
+this product of coefficients is then summed up to produce a scalar characterized
+the overlap between the signals at a given time lag $\tau$.
+
 This approach was successful.  It resolved the time delays to a resolution of 0.02 seconds,
 sufficient to synchronize the frames to the nearest frame number.
 We generated a 7x7 skew symmetric matrix of estimated time lags.
@@ -483,20 +491,24 @@ Here is a visualization of the convolution used to determine the lag between cam
 This chart makes it clear that the signal estimating that the lag was at approximately 
 +7 seconds was very strong.  The function spikes up close to around 4.8E15 in a 
 neighborhood where it had been below 3.2E15 .  
-This dot form of the dot product tends to get smaller as the number of terms increases
-(i.e. it is not normalized).  
+This form of the dot product tends to get smaller as the number of terms increases
+(i.e. both signals are padded with zeros and the inner product is not normalized to adjust for it). 
 If the chart was continued all the way to either side, it would tail down to zero 
 on both sides.  For this reason, this particular approach will struggle to identify a large time lag.
 That is why the preliminary step of approximately synchronizing the feeds was performed.
 
-All code used to synchronize the audio feeds can be found in the file \texttt{audio\_synchronize.py}.
+All code used to synchronize the audio feeds can be found in the file 
+\href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/audio_synchronize.py}
+{\texttt{audio\_synchronize.py}}.
 The function \texttt{wav\_to\_freq} converts a WAV audio file to a Fourier spectrum using the FFT.
 The function \texttt{synchronize\_spectra} finds the time lag between two spectra by convolving one
 against the reversal of the other and taking the argmax of the result.
 The function \texttt{make\_synch\_matrix} builds an 7x7 matrix of estimated lags.
 Even though there are only 6 degrees of freedom in this problem, 
 we estimate all 42 entries and then average the rows to maximize the accuracy of the measurement.
-The outputs of the synchronization calculation are in the test file \texttt{synchronization\_output.txt}
+The full outputs of the synchronization calculation are in the text file 
+\href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/calculations/synchronization_output.txt}
+{\texttt{synchronization\_output.txt}}.
 in the \texttt{calculations} directory of our repository.
 The plot was generated with the function \texttt{plot\_conv}.
 
@@ -512,6 +524,11 @@ in the gray longsleeve shirt with a goatee is dribbling the ball with a high str
 and the ball is close to its apex.  This is particularly clear on the first three views
 if you start at the top left and read them like a page in a book (right, then down).
 We claim this is evidence that the audio synchronization was accurate to the nearest frame!
+
+A more stringent test is to watch the movie assembled from the tableau frames.
+That is a movie showing the entire scene with frames like the one above.
+While there are some little hitches, if you watch this clip you should be convinced that
+the synchronization was accurate to within the resolution of the 15 FPS frame rate.
 
 \newpage
 \section{Transforming 3D World Coordinates to Pixel Locations}
