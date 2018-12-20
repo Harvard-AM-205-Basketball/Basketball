@@ -829,11 +829,13 @@ if not in full automatic mode.
 
 After exhausting over a week attempting to implement an automated workflow to 
 annotate the pixel coordinates of the ball, we abandoned the effort approximately
-36 hours before the project deadline and devised a new plan to prove out as much
+72 hours before the project deadline and devised a new plan to prove out as much
 of our remaining plans as possible in the remaining time.
-We opted to hand annotate the center of the ball over periods of interest.
-In particular, we identified several shot attempts, and annotated the frames
-containing these attempts.
+We opted to hand annotate the center of the ball over all 4,391 frames for each of the 7 cameras.
+After doing this, we identified several shot attempts, to focus on with our test code before attempting to fully reconstruct the path off the ball for the entire game.
+
+While the hand annotation was painful and laborious, the data has the potential to be very useful for future work. The annotated data could be used in future AM205 problem sets, or for training object trackers. If we had more time, we could have used the hand annotation to compare the performance of the OpenCV motion trackers, or to train our own custom motion tracker and evaluate its performance. While not fun, the hand annotation process was also a reminder that in some tasks, humans still beat machines, albeit very slowly.
+
 
 \newpage
 \section{Tracking The Ball in World Space}
