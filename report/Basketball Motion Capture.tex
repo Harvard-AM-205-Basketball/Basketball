@@ -319,7 +319,6 @@ An obvious idea that can be run quickly is to take the mean of each pixel over a
 This has some obvious shortcomings though, as the pixels get blurred from frames where objects are in the foreground.
 We hit on the idea of estimating the median value of the R, G and B color component of each pixel.
 This calculation was performed in the Python file 
-% \texttt{image\_background.py}.
 \href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/image_background.py}
 {\texttt{image\_background.py}}.
 There is not much going on in this file of mathematical interest.  
@@ -516,17 +515,24 @@ Of course the proof of the pudding is in the eating.
 Here are images from six of the seven cameras of the first ostensibly synchronized frames:
 \begin{figure}[H]
 \center
-\includegraphics[width=1.00\textwidth]{synced_frames.png}
+\includegraphics[width=0.95\textwidth]{synced_frames.png}
 \end{figure}
 
 If you pay close attention to the ball, you can see that in all six frames, the gentleman
-in the gray longsleeve shirt with a goatee is dribbling the ball with a high stroke, 
+in the gray long sleeve shirt with a goatee is dribbling the ball with a high stroke, 
 and the ball is close to its apex.  This is particularly clear on the first three views
 if you start at the top left and read them like a page in a book (right, then down).
 We claim this is evidence that the audio synchronization was accurate to the nearest frame!
 
 A more stringent test is to watch the movie assembled from the tableau frames.
 That is a movie showing the entire scene with frames like the one above.
+It was created using the Python script
+\href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/make_tableaux.py}
+{\texttt{make\_tableau.py}}.  
+There isn't much mathematical content here, but it took a surprisingly long time to code it.  
+The biggest challenge was inducing \texttt{matplotlib} to assemble the frames without padding.
+There was also some fun involved in parallelizing it without memory leaks.
+This was a big job; it ended up taking about four hours to run on the big Linux server.
 While there are some little hitches, if you watch this clip you should be convinced that
 the synchronization was accurate to within the resolution of the 15 FPS frame rate.
 
@@ -564,7 +570,8 @@ Also note that it is represented as an array in Python with the first coordinate
 \subsection{World to Camera}
 To get from world coordinates to camera coordinates, we must perform a translation and then a rotation. 
 Let the camera be placed at location $\bm{C}$ (denoting a vector) in the world frame, and let the rotation matrix be $R$. 
-Since the rotation matrix $R$ is designed to go from the world to the camera coordinate system, $R^{T}$ is designed to go from the camera to the world. 
+Since the rotation matrix $R$ is designed to go from the world to the camera coordinate system, $R^{T}$ is will go from the camera to the world. 
+(The inverse of an orthogonal matrix is its transpose.)
 Thus, the first column of $R^{T}$ should represent the camera $X$-axis in world coordinates, the second column should represent the $Y$-axis, 
 and the third column should represent the $Z$-axis. 
 In terms of $R$, we see that the first \textit{row} of $R$ must be equivalent to the camera $X$-axis in world coordinates, etc. \\
@@ -580,7 +587,7 @@ We then normalize the vector to get the third row of $R$. \\
 To get the $X$-axis, we rely on the assumption that the camera $X$-axis has a $W$-coordinate of 0 in the world frame (i.e. that it is parallel to the ground). 
 This is a reasonable assumption because we start with the camera pointed parallel to the ground.  
 When we tilt the camera slightly upwards, we don't rotate it in any other way, so the $X$-axis stays stationary while the $Z$ and $Y$ axes rotate (see Figure below). 
-In fact, for the six cameras mounted on tripods, it's hardly an assumption at all; all the tripods were set so the cameras would only tilt up and down.
+In fact, for the six cameras mounted on tripods, it is not an assumption at all; each tripod was set so the cameras would only tilt up and down.
 Interestingly, Camera 1 is not mounted on a tripod, but taped to the back of the backboard, and we can see a definite tilt
 in the visual calibration for that camera because this assumption \textit{does} fail for that camera.
 Thus, we look at the first two world coordinates of the camera $Z$-axis, flip the order of the coordinates, 
@@ -700,8 +707,12 @@ Our final step in Python is to use our estimated values of $s_x$ and $s_y$ to co
 The numbers presented above were based on our initial estimates of the size of the court, 
 which were subsequently revised with the assistance of a trusty tape measure.
 We took all the logic presented above and wrapped it up into one end to end calculation
-in the file \texttt{pixels.py}.  This file uses the locations of features on the court that are computed
-in \texttt{basketball\_court.py}, presented below.  
+in the file 
+\href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/pixel_size.py}
+{\texttt{pixel\_size.py}}.  
+This file uses the locations of features on the court that are computed in 
+\href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/basketball_court.py}
+{\texttt{basketball\_court.py}}, presented below.  
 It also uses a handful of pixel coordinates for these landmarks.
 Running these calculations on the revised estimates for the size of the court,
 we find pixel dimensions $s_x$ = 1.196E-5 and $s_y$ = 1.141E-5.
@@ -711,11 +722,18 @@ was that our initial pixel sizes were off by about 12\%, which wrought havoc on 
 
 \subsection{Python Implementation of Coordinate Transforms}
 The file \texttt{camera\_transform} implements all of these formulas in a modular form. \\
-Function \texttt{cam2pix} converts coordinates $(x, y)$ in the local image plane to integer pixel values $(u, v)$. \\
+We need both the rounded and unrounded transformation from world to pixels for different applications.
+The integer version is used for placing pixels on images based on an object's estimated position.
+The floating point version is used in numerical optimization, where it is critical that 
+the functions we use are differentiable.
+Function \texttt{cam2pix\_f} converts coordinates $(x, y)$ in the local image plane to floating point pixel values $(u, v)$.  \\
+Function \texttt{cam2pix} is the integer version, rounding these to the nearest pixel. \\
 Function \texttt{make\_transforms} takes as inputs 
 \texttt{cam\_pos}, the position of the camera in the world frame, and
 \texttt{cam\_point}, the position of \textit{any} object that the center of the camera is pointing at.
 This function is a ``factory'' that makes a pair of transformers returning $(x, y)$ and $(u, v)$ coordinates.
+
+\subsection{Gratuitous Cultural Reference: Trasnformers}
 
 \bigskip
 \subsection{Resources}
