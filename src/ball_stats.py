@@ -10,6 +10,7 @@ Thu Dec 20 08:57:03 2018
 """
 
 import glob
+import numpy as np
 import pandas as pd
 from typing import List
 
@@ -50,8 +51,15 @@ def main():
         # mask for non-overlapping items (
         mask = ~df1.index.isin(df2.index)
         ball_pos = pd.concat([df1[mask], df2], sort=True)
+        # Report results
+        print(f'Loaded {len(df1)} stats in {fname_df}')
+        print(f'Found {len(df2)} CSV fragments in {pathname}.')
+        print(f'Added {np.sum(mask)} new items.')
+        
     except:
         ball_pos = ball_pos_new
+        # Report results
+        print(f'Created new ball_pos.csv with {len(ball_pos)} entries.')
     
     # Save the dataframe
     ball_pos.to_csv('../calculations/ball_pos.csv')
