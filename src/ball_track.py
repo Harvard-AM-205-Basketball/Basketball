@@ -463,6 +463,12 @@ def main():
         # If this file already exists, skip it and continue
         if not os.path.isfile(fname):
             frame_nums.append(n)
+    
+    # Report number of tracks
+    num_left = len(frame_nums)
+    num_skipped = (n1 - n0) - num_left
+    print(f'Identified {num_left} frames to processed; skipping {num_skipped}.')
+            
     # Split up the frames for apportionment to different threads
     job_tbl = dict()
     for k in range(jobs):
