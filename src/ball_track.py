@@ -451,6 +451,9 @@ def main():
         print(f'Error in arguments for make_tableaux.py.  argc={argc}, argv={argv}.')
         print(usage_str)
         exit()
+    # Apply min an max to n0 and n1
+    n0 = max(n0, 0)
+    n1 = min(n1, frame_count)
     print(f'Processing frames from {n0} to {n1} on {jobs} threads.')
     
     # Generate list of candidate frame numbers; only those where the file

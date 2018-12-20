@@ -725,15 +725,26 @@ The file \texttt{camera\_transform} implements all of these formulas in a modula
 We need both the rounded and unrounded transformation from world to pixels for different applications.
 The integer version is used for placing pixels on images based on an object's estimated position.
 The floating point version is used in numerical optimization, where it is critical that 
-the functions we use are differentiable.
+the functions we use are differentiable.\\
 Function \texttt{cam2pix\_f} converts coordinates $(x, y)$ in the local image plane to floating point pixel values $(u, v)$.  \\
 Function \texttt{cam2pix} is the integer version, rounding these to the nearest pixel. \\
-Function \texttt{make\_transforms} takes as inputs 
+Function \texttt{sph2xyz} converts spherical coordinate angles $\theta$ and $\phi$ to Cartesian coordinates. \\
+Function \texttt{xyz2sph} converts Cartesian coordinates back to spherical angles $\theta$ and $\phi$.
+These functions are used later in an alternate characterization of the camera transforms that uses two
+angular inputs rather than three aiming points.\\
+Function \texttt{rot\_from\_points} builds a 3x3 rotation matrix given 
 \texttt{cam\_pos}, the position of the camera in the world frame, and
-\texttt{cam\_point}, the position of \textit{any} object that the center of the camera is pointing at.
-This function is a ``factory'' that makes a pair of transformers returning $(x, y)$ and $(u, v)$ coordinates.
+\texttt{cam\_point}, the position of \textit{any} object that the center of the camera is pointing at. \\
+Function \texttt{make\_transforms} takes as inputs the locations of the camera and its aim point,
+plus a zoom.  This function is a ``factory'' that makes a trio of transformers returning 
+$(x, y)$ and $(u, v)$ coordinates (both float and integer).
 
-\subsection{Gratuitous Cultural Reference: Trasnformers}
+\subsection{Gratuitous Cultural Reference: Transformers}
+\begin{figure}[H]
+\includegraphics[width=0.8\textwidth]{optimus_prime.jpg}
+\centering
+\caption*{Optimus Prime}
+\end{figure}
 
 \bigskip
 \subsection{Resources}
