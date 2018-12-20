@@ -318,7 +318,10 @@ in 2D for each camera.  Second, to aid us in calibrating the location of each ca
 An obvious idea that can be run quickly is to take the mean of each pixel over all the frames.
 This has some obvious shortcomings though, as the pixels get blurred from frames where objects are in the foreground.
 We hit on the idea of estimating the median value of the R, G and B color component of each pixel.
-This calculation was performed in the Python file \texttt{image\_background.py}.
+This calculation was performed in the Python file 
+% \texttt{image\_background.py}.
+\href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/image_background.py}
+{\texttt{image\_background.py}}.
 There is not much going on in this file of mathematical interest.  
 Getting the program to run to completion however was a nontrivial task!  
 The challenge is that loading all the frames for even one camera  
@@ -333,7 +336,7 @@ Here are examples of the mean and median background image:
 \centering
 \includegraphics[width=0.80\textwidth]{Camera2_mean.png}
 \includegraphics[width=0.80\textwidth]{Camera2_median.png}
-\caption{Mean and Median Frame for Camera 2}
+\caption*{Mean and Median Frame for Camera 2}
 \end{figure}
 This camera gave a good example of why we went to the trouble of estimating the median.
 The mean is visibly blurry (especially around the ``H'' logo on the bleachers) and median is considerably more crisp.
@@ -351,9 +354,10 @@ Unfortunately the foreground estimation proved to be a rabbit hole for us.
 Initial attempts were based on comparing each frame to the median and setting a tolerance threshold.
 If a pixel was different from the background by more than this amount, then it was declared to be foreground.
 This did not work at all, and in retrospect it was too simplistic.
-Eventually we did some more research into this and it turns out that both foreground detection
-is a well studied problem.  In the end, we did succeed, after many hours of work, in automatically 
-extracting decent quality foreground images from all the frames.  
+Eventually we did some more research into this and it turns out that both foreground and background detection
+are challenging and well studied problems.  
+In the end, we did succeed, after many hours of work, in automatically extracting 
+decent quality foreground images from all the frames.  
 It was somewhat of a Pyrrhic victory because it consumed so much of our time that we didn't
 really have much time left to see if we could use them for automated ball tracking.
 However, because the foreground detection problem is intrinsically interesting,
@@ -362,13 +366,16 @@ We used the \texttt{OpenCV} computer vision library.
 This is an excellent tool that performs many standard computer vision tasks.  
 It is written in C++ and also available with convenient bindings to Python.
 OpenCV includes a handy gadget called a \texttt{BackgroundSubtractor}.
-The file \texttt{image\_foreground.py} uses this OpenCV class to generate foregrounds
+The file 
+\href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/image_foreground.py}
+{\texttt{image\_foreground.py}}
+uses this OpenCV class to generate foregrounds
 for all of our frames.  This job ran in approximately one hour on a high end desktop PC.
 Here is one example frame, taken from Camera 3 at frame 2316 (1:17 into the game):
 \begin{figure}[H]
 \center
-\includegraphics[width=0.80\textwidth]{Camera3_SyncFrame02316.png}
-\includegraphics[width=0.80\textwidth]{Camera3_Foreground02316.png}
+\includegraphics[width=0.90\textwidth]{Camera3_SyncFrame02316.png}
+\includegraphics[width=0.90\textwidth]{Camera3_Foreground02316.png}
 \end{figure}
 
 As we can see, the OpenCV library did an excellent job of picking just a small number 
