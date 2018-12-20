@@ -84,7 +84,7 @@ In particular, the intuition was that with enough cameras, it should be possible
 a least squares or similar style estimation of the position of the ball that is in best agreement with the video frames.
 Steps we planned to take to achieve our goal included:
 \begin{itemize}
-\item obtaining video in an experiment at the MAC; processing the video
+\item obtaining video of a pickup game in the the Malkin Athletic Center; processing the video
 \item synchronizing the video based on the audio from each clip
 \item mapping from 3D world coordinates to 2D pixel locations on each camera
 \item tracking the ball in 2D space on each camera; 
@@ -158,7 +158,7 @@ The camera numbers continue increase moving clockwise around the court, with cam
 the bottom right; behind the near basket; bottom left; center left; and top left, respectively.
 
 We performed this experiment at the Malkin Athletic Center (``MAC'') on Friday, November 16.  
-We used a ladder and electrical tape to mount Camera 1 behind one of backboard.
+We used a ladder and electrical tape to mount Camera 1 behind one backboard.
 The backboard on the opposite side of the court was raised up towards the ceiling,
 so we were unable to obtain footage from Camera 5.
 We made our best effort to orient the cameras to provide useful footage for a half-court basketball game.  
@@ -358,7 +358,8 @@ where $\tau$ is the time lag.  So synchronizing the two feeds amounts to finding
 will maximize $\sum_t f(t) g(t - \tau)$.  This looks very similar to a 
 \href{https://en.wikipedia.org/wiki/Convolution}{convolution} between $f$ and $g$,
 but with the roles of $t$ and $\tau$ exchanged in the arguments of $g$.
-An introductory course in Fourier Analysis cover the fact the Fourier transform of the convolution
+An introductory course in Fourier Analysis covers
+the fact the Fourier transform of the convolution
 $f * g$ is the product of the Fourier transforms of $f$ and $g$.
 A practical application of this for discrete sampling problems such as this one is that convolution
 can be evaluated efficiently using the Fast Fourier Transform (FFT).
