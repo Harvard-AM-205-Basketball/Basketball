@@ -54,7 +54,7 @@ def main():
         # Report results
         print(f'Loaded {len(df1)} stats in {fname_df}')
         print(f'Found {len(df2)} CSV fragments in {pathname}.')
-        print(f'Added {np.sum(mask)} new items.')
+        print(f'Added {len(ball_pos) - len(ball_pos_old)} new items.')
         
     except:
         ball_pos = ball_pos_new
