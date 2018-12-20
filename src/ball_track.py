@@ -461,7 +461,7 @@ def main():
         # The filename
         fname = f'{path_ball_tableau }/BallTableau{n:05d}.png'
         # If this file already exists, skip it and continue
-        if not os.path.isfile(fname):
+        if not os.path.isfile(fname) and n % 2 == 0:
             frame_nums.append(n)
     # Split up the frames for apportionment to different threads
     job_tbl = dict()
