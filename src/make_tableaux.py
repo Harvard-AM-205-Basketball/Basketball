@@ -16,6 +16,7 @@ Wed Dec 19 16:16:10 2018
 import sys
 import os
 import matplotlib.pyplot as plt
+import pandas as pd
 from joblib import Parallel, delayed
 from textwrap import dedent
 from tqdm import tqdm

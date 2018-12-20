@@ -456,13 +456,20 @@ def main():
     # Generate list of candidate frame numbers; only those where the file
     # does not already exist (don't want to process duplicates)
     # frame_nums = list(range(n0, n1))
-    frame_nums = list()
-    for n in range(n0, n1):
+    # Path to ball_pos
+    ball_pos_fname = '../calculations/ball_pos.csv'
+    # Load DataFrame of ball position data
+    ball_pos = pd.read_csv(ball_pos_fname, index_col=['n'])
+    # Generate frame numbers in selected range that have not already been processed
+    frame_nums = [n for n in range(n0, n1) if n not in ball_pos.index]
+
+    # Perform a further check if the image data exists
+    for n in frame_nums:
         # The filename
         fname = f'{path_ball_tableau }/BallTableau{n:05d}.png'
-        # If this file already exists, skip it and continue
-        if not os.path.isfile(fname):
-            frame_nums.append(n)
+        # If this file already exists, remove it and continue
+        if os.path.isfile(fname):
+            frame_nums.remove(n)
     
     # Report number of tracks
     num_left = len(frame_nums)
@@ -488,3 +495,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+

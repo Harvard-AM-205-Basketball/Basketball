@@ -10,7 +10,6 @@ Thu Dec 20 08:57:03 2018
 """
 
 import glob
-import numpy as np
 import pandas as pd
 from typing import List
 
@@ -45,7 +44,7 @@ def main():
     # If there is already a ball_pos present, load it and update the contents
     # https://stackoverflow.com/questions/33001585/pandas-dataframe-concat-update-upsert
     try:
-        ball_pos_old = pd.read_csv(fname_df, index=['n'])
+        ball_pos_old = pd.read_csv(fname_df, index_col=['n'])
         df1 = ball_pos_old
         df2 = ball_pos_new
         # mask for non-overlapping items (
