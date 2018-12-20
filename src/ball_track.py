@@ -467,7 +467,7 @@ def main():
     # Report number of tracks
     num_left = len(frame_nums)
     num_skipped = (n1 - n0) - num_left
-    print(f'Identified {num_left} frames to processed; skipping {num_skipped}.')
+    print(f'Identified {num_left} frames to process; skipping {num_skipped}.')
             
     # Split up the frames for apportionment to different threads
     job_tbl = dict()
