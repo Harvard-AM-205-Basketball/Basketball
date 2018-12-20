@@ -392,7 +392,7 @@ def report(n: int):
 def track_frames(frame_nums, progress_bar: bool = False):
     """Process a batch of frames"""
     # Wrap the frame_nums in tqdm if progress_bar was specified
-    frame_iter = tqdm(frame_nums) if progress_bar else frame_nums    
+    frame_iter = tqdm(frame_nums) if progress_bar else frame_nums
     for n in frame_iter:
         # The filename
         fname = f'{path_ball_tableau }/BallTableau{n:05d}.png'
@@ -462,17 +462,21 @@ def main():
     # Path to ball_pos
     ball_pos_fname = '../calculations/ball_pos.csv'
     # Load DataFrame of ball position data
-    ball_pos = pd.read_csv(ball_pos_fname, index_col=['n'])
-    # Generate frame numbers in selected range that have not already been processed
-    frame_nums = [n for n in range(n0, n1) if n not in ball_pos.index]
+    try:
+        ball_pos = pd.read_csv(ball_pos_fname, index_col=['n'])
+        # Generate frame numbers in selected range that have not already been processed
+        frame_nums_cand = [n for n in range(n0, n1) if n not in ball_pos.index]
+    except:
+        frame_nums_cand = [n for n in range(n0, n1)]
 
     # Perform a further check if the image data exists
-    for n in frame_nums:
+    frame_nums = list()
+    for n in frame_nums_cand:
         # The filename
         fname = f'{path_ball_tableau }/BallTableau{n:05d}.png'
         # If this file already exists, remove it and continue
-        if os.path.isfile(fname):
-            frame_nums.remove(n)
+        if not os.path.isfile(fname):
+            frame_nums.append(n)
     
     # Report number of tracks
     num_left = len(frame_nums)

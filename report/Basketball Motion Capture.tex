@@ -721,7 +721,10 @@ It is reassuring that these two estimates are within 4.8\% of each other, becaus
 was that our initial pixel sizes were off by about 12\%, which wrought havoc on the visual calibration.)
 
 \subsection{Python Implementation of Coordinate Transforms}
-The file \texttt{camera\_transform} implements all of these formulas in a modular form. \\
+The file 
+\href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/camera_transform.py}
+{\texttt{camera\_transform.py}}
+implements all of these formulas in a modular form. \\
 We need both the rounded and unrounded transformation from world to pixels for different applications.
 The integer version is used for placing pixels on images based on an object's estimated position.
 The floating point version is used in numerical optimization, where it is critical that 
@@ -737,16 +740,19 @@ Function \texttt{rot\_from\_points} builds a 3x3 rotation matrix given
 \texttt{cam\_point}, the position of \textit{any} object that the center of the camera is pointing at. \\
 Function \texttt{make\_transforms} takes as inputs the locations of the camera and its aim point,
 plus a zoom.  This function is a ``factory'' that makes a trio of transformers returning 
-$(x, y)$ and $(u, v)$ coordinates (both float and integer).
+$(x, y)$ and $(u, v)$ coordinates (both float and integer). \\
+Function \texttt{make\_transforms\_angle} has the same outputs as \texttt{make\_transforms},
+but its inputs describing its orientation are $\theta$ and $\phi$ rather than the aiming point.
+This makes it better suited for the optimization used in the numerical camera calibration below.
 
 \subsection{Gratuitous Cultural Reference: Transformers}
 \begin{figure}[H]
-\includegraphics[width=0.8\textwidth]{optimus_prime.jpg}
+\includegraphics[width=0.72\textwidth]{optimus_prime.jpg}
 \centering
 \caption*{Optimus Prime}
 \end{figure}
 
-\bigskip
+% \bigskip
 \subsection{Resources}
 \url{http://www.cse.psu.edu/~rtc12/CSE486/lecture12.pdf} \\
 \url{http://www.cse.psu.edu/~rtc12/CSE486/lecture13.pdf} \\
@@ -760,7 +766,7 @@ $(x, y)$ and $(u, v)$ coordinates (both float and integer).
 \newpage
 \section{Visual Calibration of Camera Position and Orientation}
 It is possible to confirm a camera calibration visually.  
-The idea is straightforward, though as usual on this challenge, the devil is in the details.
+The idea is straightforward, though as usual on this project, the devil is in the details.
 We know where various prominent visual features on a basketball court are located in the
 ``world frame'' coordinate system of the court.  
 For instance, we know the court should be 88 feet long and that the rim should be exactly 10 feet over the ground.
@@ -768,7 +774,10 @@ The idea is to produce arrays of 3D points on these objects, and then transform 
 We can than ``annotate'' an image by overlaying the predicted pixel positions of visual landmarks on the image.
 If the calibration is correct, we will paint virtual lines on the perimeter, key, backboard, etc.
 
-The Python file \texttt{basketball\_court.py} computes coordinates for a series of visual landmarks on a
+The Python file 
+ \href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/basketball_court.py}
+{\texttt{basketball\_court.py}}
+computes coordinates for a series of visual landmarks on a
 basketball court including the perimeter, midcourt line, restraining circle at the center of the court,
 the ``key'', and the three point arc.  Here is a plot of the court seen from above, i.e. of the XY plane.
 The backboard is shown in black and the small orange circle is the rim.
@@ -791,9 +800,31 @@ At the top of the file, global variables are set with various dimensions of the 
 The functions \texttt{make\_line}, \texttt{make\_polygon}, \texttt{make\_arc}  and \texttt{make\_circle}
 assemble arrays of 3D vectors of sample points on objects of these types.
 The function \texttt{make\_court\_lines} is the workhorse, generating both the lines plotted above
-which appear on the floor of the court, but also features corresponding to a vertical line from the
+which appear on the floor of the court, and also features corresponding to a vertical line from the
 floor to the base of the rim; the small and large white rectangle painted on the backboard;
-and the rim.
+and the rim.  In addition to these lines, the function generates a large collection of named landmarks 
+(41 of them if you can believe it!).  
+Coming up with descriptive names was about as challenging as getting their coordinates.
+Landmark names used were:
+\begin{itemize}
+\item \texttt{court\_NW, court\_NE, court\_SE, court\_SW} for the four corners
+\item \texttt{half\_court\_W, half\_court\_E} for the two sides of the half-court line
+\item \texttt{center, center\_W, center\_E, center\_N, center\_S} for the center and its four quadrants
+\item \texttt{key\_N\_NW, key\_N\_NE, key\_N\_SW, key\_N\_SE, key\_top\_N} 
+for the key on the northern side of the court: its four corners plus the top
+\item \texttt{key\_S\_SW, key\_S\_SE, key\_S\_NW, key\_S\_NE, key\_top\_S} 
+for the key on the southern side of the court: its four corners plus the top
+\item \texttt{backboard\_N\_TL, backboard\_N\_TR, backboard\_N\_BL, backboard\_N\_BR} 
+for the four corners of the outer white rectangle on the northern backboard
+\item \texttt{backboard\_S\_TL, backboard\_S\_TR, backboard\_S\_BL, backboard\_S\_BR} 
+for the four corners of the outer white rectangle on the southern backboard
+\item \texttt{backboard\_in\_N\_TL, backboard\_in\_N\_TR, backboard\_in\_N\_BL, backboard\_in\_N\_BR} 
+for the four corners of the inner white rectangle on the northern backboard
+\item \texttt{backboard\_in\_S\_TL, backboard\_in\_S\_TR, backboard\_in\_S\_BL, backboard\_in\_S\_BR} 
+for the four corners of the inner white rectangle on the southern backboard
+\item \texttt{rim\_center\_N, rim\_center\_S} for the center of the rim on each end of the court
+\end{itemize}
+
 
 Here is a visual demonstration of the calibration of Camera 3:
 \begin{figure}[H]
@@ -818,7 +849,9 @@ Automating the calibration is one of our top areas where we would like to improv
 if we continued working on this problem.  
 Automating the camera calibration could be a good fit for machine learning or neural network techniques.
 
-These calculations are carried out in the Python file \texttt{camera\_calibration.py}.
+These calculations are carried out in the Python file 
+\href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/camera_calibration.py}
+{\texttt{camera\_calibration.py}}.
 The function \texttt{plot\_frame} creates a plot of a frame with suitable axes in preparation 
 for annotation with pixels at visual landmarks.
 Two utility functions \texttt{annotate\_frame\_line} and \texttt{annotate\_frame\_dots}
