@@ -453,8 +453,17 @@ def main():
         exit()
     print(f'Processing frames from {n0} to {n1} on {jobs} threads.')
     
+    # Generate list of candidate frame numbers; only those where the file
+    # does not already exist (don't want to process duplicates)
+    # frame_nums = list(range(n0, n1))
+    frame_nums = list()
+    for n in range(n0, n1):
+        # The filename
+        fname = f'{path_ball_tableau }/BallTableau{n:05d}.png'
+        # If this file already exists, skip it and continue
+        if not os.path.isfile(fname):
+            frame_nums.append(n)
     # Split up the frames for apportionment to different threads
-    frame_nums = list(range(n0, n1))
     job_tbl = dict()
     for k in range(jobs):
         job_tbl[k] = [n for n in frame_nums if n % jobs == k]
