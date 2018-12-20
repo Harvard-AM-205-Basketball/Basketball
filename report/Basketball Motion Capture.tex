@@ -120,8 +120,8 @@ Take Two Interactive with sales of \$348 million.
 What does this have to do with an overly ambitious AM 205 project?
 One of the top selling points of these games is verisimilitude.  
 If a team could come up with an efficient procedure to harvest high resolution 3D coordinates of the ball and players
-from HDTV footage of NBA and NCAA games, this data could potentially be used to improve these games.
-One immediate use case would in training the AI agents that control the actions of players not played by people.
+from HDTV footage of NBA and NCAA games, this data could potentially be used to improve these video games.
+One immediate use case would be in training the AI agents that control the actions of players not played by people.
 
 \newpage
 \section{Data Acquisition and Practical Details}
@@ -147,7 +147,7 @@ The relatively low cost of the equipment used makes our set-up quite accessible 
 Here is a diagram of a basketball court shown in 3D perspective:
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.80\textwidth]{NBA-court-diagram.png}
+\includegraphics[width=0.90\textwidth]{NBA-court-diagram.png}
 \end{figure}
 
 We intended to place eight cameras around the court, numbered from 1 to 8 as follows.  
@@ -159,6 +159,8 @@ the bottom right; behind the near basket; bottom left; center left; and top left
 
 We performed this experiment at the Malkin Athletic Center (``MAC'') on Friday, November 16.  
 We used a ladder and electrical tape to mount Camera 1 behind one backboard.
+(We did this while the staff at the MAC wasn't looking... We used a buddy system to ensure ladder safety.
+Undergraduates were not allowed to risk standing on ladders; that activity was limited to graduate students only.)
 The backboard on the opposite side of the court was raised up towards the ceiling,
 so we were unable to obtain footage from Camera 5.
 We made our best effort to orient the cameras to provide useful footage for a half-court basketball game.  
@@ -166,18 +168,20 @@ The camera orientations would need to be different to capture a full court game.
 We were lucky enough that some gentlemen who were playing agreed to play
 a short game on the court where we set up our cameras to assist in our experiment.
 The game lasted approximately 2:26.  This might not sound like much, but it amounts to just under 4400 frames at 30 FPS.
-This data set was already at a size where it put significant strain on our computational resources,
-particularly those of us working on laptops.
+We had about 20-25 minutes of mostly junk footage, so the pick-up game was solid gold by comparison.
+This data set was already at a size where it put significant strain on our 
+computational resources, particularly those of us working on laptops.
 
-\textbf{Lesson Learned: when in doubt, take a measurement}\\
+\textbf{Lesson Learned: When in doubt, take a measurement}\\
 We brought a large tape measure with us to the gym, but in the bustle of setting up 
-all our cameras, we neglected to confirm the measurements of the court,
+all our cameras and climbing ladders, we neglected to confirm the measurements of the court,
 naively assuming that the might Harvard would have regulation NCAA basketball courts.
 Bad idea... after wasting over three hours failing to visually calibrate our cameras,
 we realized that the measurements we had been using were wrong.
 After we went back measured the court dimensions, the visual calibration
 was quicker and more accurate.
 
+\newpage
 \subsection{Video Processing}
 This project posed numerous practical challenges.  
 Two of them were editing the video files we obtained from the cameras 
@@ -201,11 +205,16 @@ edited our video by hand in Adobe Premier.
 All we really needed to do here was merge and trim feeds; convert from AVI to MP4;
 and extract frames and audio (WAV) from the MP4.
 These operations are very efficient in ffmpg once you learn how to make commands.
-They can also be scripted and reused.
+They can also be scripted and reused.  
+Adobe Premier or a similar tool is still excellent for reviewing the video files and determining
+the start and end times for desired files.  
+Our advice for others trying this task for the first time would be to write down the times of the
+desired cuts on paper, then write a command line script to do the video tasks in \texttt{ffmpeg}.
 
+\newpage
 \subsection{Accessing our Code and Data: GitHub and DropBox}
 All of our code for this project is available here on a public GitHub repository:\\
-\href{https://github.com/Harvard-AM-205-Basketball/Basketball}{Harvard-AM-205-Basketball}.
+\href{https://github.com/Harvard-AM-205-Basketball/Basketball}{GitHub Harvard-AM-205-Basketball}.
 While we will follow all submission instructions and upload individual Python files with this report,
 the most efficient way get all of our code with the correct directory layout is to clone the repository: \\
 \texttt{git clone https://github.com/Harvard-AM-205-Basketball/Basketball.git}
@@ -220,11 +229,15 @@ One technique we used to manage having different folder locations was to create 
 project directory pointing to the Dropbox folders.  
 Dropbox no longer supports public folders, so the only way we know to share our data files
 is to send an invitation to access the shared folder.  We are of course happy to do this.
+Dropbox also supports the creation of links.  This link should allow any reader to download all of our data:
+\href{https://www.dropbox.com/sh/kdvbl0sfw9lckff/AABTEYhBnZ7FPw6Ku5Bznjkea?dl=0}{Dropbox Harvard-AM-205-Basketball}
+
 Please be warned though that Dropbox counts the entire size of a shared folder against the
 space quota of everyone who has access to it.  So if you are on a free Dropbox plan, 
 sharing this folder will exhaust your space quota and leave you temporarily unable to upload files.
 We are still trying to figure out if there is a better way to work collaboratively on large data files
 and make them available to the public in the interests of replicable science.
+In the interim, the ability of any reader to download our data via the above link is satisfactory if not ideal.
 
 \newpage
 \subsection{Software Environment and Code Files}
@@ -235,25 +248,64 @@ Below is a list in dependency order of source code files (including scripts) use
 
 \textbf{Source Files for Basketball Tracking:}
 \begin{itemize}
-\item \texttt{make\_links\_windows.bat} - create symbolic links in the repository to the Dropbox folder with large files
-\item \texttt{audio\_synchronize.py} - synchronize movie files (MP4, AVI, etc) by aligning their WAV audio tracks
-\item \texttt{am205\_utils.py} - utility functions for AM 205
-\item \texttt{image\_utils.py} - utility functions used to handle image frames
-\item \texttt{synchronize\_frames.py} - generate synchronized frames using the lags produced from audio synchronization
-\item \texttt{synchronize\_video.bat} - combine the synchronized frames back into synchronized movies using \texttt{ffmpeg}
-\item \texttt{visualize\_sync\_frames.py} - combine 6 frames to one image to demonstrate that they're synchronized
-\item \texttt{basketball\_court.py} -- visualize and compute (x, y, z) coordinates of landmarks on 
-basketball courts including the perimeter, key, three point line, etc.
-\item \texttt{camera\_transform.py} -- create transformation functions for a camera mapping between world coordinates
-of objects they see and pixels they produce
-\item \texttt{camera\_calibration.py} -- solve for the placement and orientation of cameras by visually aligning landmarks
-on the basketball court with their transformed pixel locations
-\item \texttt{pixel\_size.py} -- numerically solve for the intrinsic pixel sizes of these cameras using landmarks
+\item \href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/make_links_windows.bat}
+{\texttt{make\_links\_windows.bat}} - create symbolic links in the repository to the Dropbox folder with large files
+
+\item \href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/am205_utils.py}
+{\texttt{am205\_utils.py}} - utility functions for AM 205
+
+\item \href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/image_utils.py}
+{\texttt{image\_utils.py}} - utility functions used to handle image frames
+
+\item  \href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/audio_synchronize.py}
+{\texttt{audio\_synchronize.py}} - synchronize movie files (MP4, AVI, etc) by aligning their WAV audio tracks
+
+\item \href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/synchronize_frames.py}
+{\texttt{synchronize\_frames.py}} - generate synchronized frames using the lags produced from audio synchronization
+
+\item \href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/synchronize_video.bat}
+{\texttt{synchronize\_video.bat}} - combine the synchronized frames back into synchronized movies using \texttt{ffmpeg}
+
+\item \href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/make_tableaux.py}
+{\texttt{make\_tableau.py}} - combine 6 frames into one image to visualize the entire scene and demonstrate that they
+are synchronize; batch to process all the frames
+
+\item \href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/basketball_court.py}
+{\texttt{basketball\_court.py}} -- visualize and compute (x, y, z) coordinates of landmarks on basketball courts including the perimeter, key, three point line, etc.
+
+\item \href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/camera_transform.py}
+{\texttt{camera\_transform.py}} -- create transformation functions for a camera mapping 
+between world coordinates of objects they see and pixels they produce
+
+\item \href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/pixel_size.py}
+{\texttt{pixel\_size.py}} -- numerically solve for the intrinsic pixel sizes of these cameras using landmarks
 on the basketball court and least squares fitting
-\item \texttt{image\_background.py} -- compute the mean and median frame for each camera
-\item \texttt{image\_foreground.py} -- extract the foreground from each frame using \texttt{OpenCV}
-\item \texttt{track\_ball.py} -- track the position of the ball in world coordinates based on pixel coordinates
-at multiple cameras.
+
+\item \href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/camera_calibration.py}
+{\texttt{camera\_calibration.py}} -- solve for the placement and orientation of cameras by visually aligning landmarks
+on the basketball court with their transformed pixel locations
+
+\item \href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/camera_calibration_num.py}
+{\texttt{camera\_calibration\_num.py}} -- numerical calibration of camera placement and orientation by least
+squares solution mapping landmarks on the court to their known pixel positions
+
+\item \href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/image_background.py}
+{\texttt{image\_background.py}} -- compute the mean and median frame for each camera
+
+\item \href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/image_foreground.py}
+{\texttt{image\_foreground.py}} -- extract the foreground from each frame using \texttt{OpenCV}
+
+\item \href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/object_track_cv.py}
+{\texttt{object\_track\_cv.py}} -- failed attempt to track the basketball's pixel location using \texttt{OpenCV}
+
+\item \href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/ball_track.py}
+{\texttt{ball\_track.py}} -- track the position of the ball in world coordinates based on pixel coordinates at multiple cameras.
+also creates annotated images of each frame showing a red circle around the projected ball position, and an annotated tableau frame.
+
+\item \href{https://github.com/Harvard-AM-205-Basketball/Basketball/blob/master/src/ball_stats.py}
+{\texttt{ball\_stats.py}} -- assemble the outputs of the ball tracking into a Pandas DataFrame including frame number,
+time, and the inferred $x$, $y$ and $z$ coordinates of the center of the basketball in the world frame
+
 \end{itemize}
 
 \newpage
@@ -852,11 +904,20 @@ If we had more time, we could have used the hand annotation to compare the perfo
 or to train our own custom motion tracker and evaluate its performance. 
 While not fun, the hand annotation process was also a reminder that in some tasks, humans still beat machines, albeit very slowly.
 
-
 \newpage
 \section{Tracking The Ball in World Space}
 
 \newpage
 \section{Conclusions}
+
+\section{Acknowledgments -Michael}
+I would like to thank my teammates Nicholas and William for their steadfast dedication 
+to this project even as it exploded in difficulty and complexity. 
+I proposed the idea thinking it would be far more manageable.
+I am grateful for their hard work in the face of unexpected challenges.
+
+I would also like to thank my wife Christie Lee Gibson who provided invaluable technical assistance
+in video editing with Adobe Premier and showed tremendous patience with my temporary abdication
+of family responsibilities in the pursuit of this project.
 
 \end{document}
