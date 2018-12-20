@@ -8,6 +8,7 @@ ball_pixel
 ball_frames
 tableau
 ball_tableau
+calculations/ball_pos*.csv
 
 # Ignore image files .png
 *.png

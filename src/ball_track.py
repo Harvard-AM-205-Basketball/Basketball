@@ -9,6 +9,8 @@ Michael S. Emanuel
 Tue Dec 18 23:48:03 2018
 """
 
+import sys
+from joblib import Parallel, delayed
 import numpy as np
 from numpy import pi
 import pandas as pd
@@ -16,8 +18,9 @@ from scipy.optimize import minimize
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
-# from IPython.display import display
+from textwrap import dedent
 from tqdm import tqdm
+import warnings
 from camera_transform import focus, pixel_size
 from camera_calibration import transforms as transforms_cal, cam_pos_tbl, zoom_tbl
 from image_utils import load_frame, combine_figs
@@ -58,10 +61,22 @@ pixel_h: int = 1080
 pixel_hw: int = pixel_w // 2
 pixel_hh: int = pixel_h // 2
 
-# Set plot style
-mpl.rcParams.update(mpl.rcParamsDefault)
-mpl.rcParams.update({'font.size': 20})
-mpl.rcParams.update({'figure.max_open_warning':256})
+# Weights on the cameras
+weight = np.ones(camera_count)
+
+# Get the pixel transforms for all the cameras
+# transforms[i] is transform_fg for that camera; maps position to floating point pixel (u, v)
+transforms = np.empty(7, dtype=object)
+# transforms_xy = np.empty(7, dtype=object)
+for i, camera_num in enumerate(camera_nums):
+    transforms[i] = transforms_cal[camera_num][2]
+
+# Build 7x3 matrix of camera positions and array of 7 zooms
+cam_pos_mat = np.zeros((7,3))
+zooms = np.zeros(7)
+for i, camera_name in enumerate(camera_names):
+    cam_pos_mat[i, :] = cam_pos_tbl[camera_name]
+    zooms[i] = zoom_tbl[camera_name]
 
 # Default size for figures to match frames using 100 dpi
 figsize=[19.2, 10.8]
@@ -70,6 +85,13 @@ dpi=100
 # Radius of a basketball: NBA standard is 29.5 inches circumference.  Need this in feet.
 R: float = 29.5 / (2*pi) / 12.0
 
+# *************************************************************************************************
+# Set plot style
+mpl.rcParams.update(mpl.rcParamsDefault)
+mpl.rcParams.update({'font.size': 20})
+mpl.rcParams.update({'figure.max_open_warning':256})
+# Ignore warnings
+warnings.filterwarnings("ignore")
 
 # *************************************************************************************************
 def load_data():
@@ -111,7 +133,7 @@ def load_data():
 
     # Return the matrix of ball pixel positions and the mask of camera availability
     return ball_pix_mat, mask_mat
-    
+
 
 # *************************************************************************************************
 # Assemble all of the transorms into one big function from world coordinates to 7 pixels
@@ -247,7 +269,7 @@ def frames_overlay(n: int, ball_pos, mask):
     for j, plot_j in enumerate(mask):
         # If this frame was included in the calibration, overlay the ball position
         if plot_j:
-            fig, ax = frame_overlay(frames, ball_pos, calc_pix_all, j)
+            fig, ax = frame_overlay(frames, calc_pix_all, ball_pos, j)
         # Otherwise just plot the frame without any annotation
         else:
             fig, ax = plot_frame(frames[j])
@@ -298,7 +320,7 @@ def track_frame(n: int):
     pos0 = np.array([0.0, 26.0, 5.0])
     
     # Create optimization objective function for this frame
-    objective_func = make_objective_func(ball_pix, mask)
+    objective_func = make_objective_func(ball_pix, mask, weight)
     
     # Run the optimization
     res = minimize(fun=objective_func, x0=pos0)
@@ -314,9 +336,13 @@ def track_frame(n: int):
     mask2int = np.array([2**i for i in range(7)])
     mask_int = np.sum(mask * mask2int)
 
-    # Save this row
-    ball_pos_df.append({'n':n, 't':t, 'x':x, 'y':y, 'z':z, 'mask': mask_int}, ignore_index=True)
-    
+    # Save this row to the dataframe
+    ball_pos_df = pd.DataFrame(columns=['n', 't', 'x', 'y', 'z', 'mask'])
+    ball_pos_df = ball_pos_df.append({'n':n, 't':t, 'x':x, 'y':y, 'z':z, 'mask': mask_int}, ignore_index=True)    
+    # Save the dataframe
+    fname_df = f'../calculations/ball_pos_{n:05d}.csv'
+    ball_pos_df.to_csv(fname_df)
+
     # Generate figures (ball for each camera plus one tableau)
     ball_figs = frames_overlay(n, ball_pos, mask)
     save_ball_figs(ball_figs, n)
@@ -362,42 +388,82 @@ def report(n: int):
     print(pixel_diff)
 
 
-def track_frames(n0: int, n1: int):
+def track_frames(frame_nums, progress_bar: bool = False):
     """Process a batch of frames"""
-    for n in tqdm(range(n0, n1)):
+    # Wrap the frame_nums in tqdm if progress_bar was specified
+    frame_iter = tqdm(frame_nums) if progress_bar else frame_nums    
+    for n in frame_iter:
         track_frame(n)
 
     
 # *************************************************************************************************
-
-# Load the data
+# Load the data into the global name space
 ball_pix_mat, mask_mat = load_data()
 
-# Get the pixel transforms for all the cameras
-# transforms[i] is transform_fg for that camera; maps position to floating point pixel (u, v)
-transforms = np.empty(7, dtype=object)
-# transforms_xy = np.empty(7, dtype=object)
-for i, camera_num in enumerate(camera_nums):
-    transforms[i] = transforms_cal[camera_num][2]
-    # transforms_xy[i] = transforms_cal[camera_num][0]
+def main():
+    # Load the data
+    ball_pix_mat, mask_mat = load_data()
+    
+    # Range of frames to process
+    n0: int
+    n1: int
+    # Number of parallel threads to use
+    jobs: int
+    
+    # Process command line arguments
+    argv: List[str] = sys.argv
+    argc: int = len(sys.argv)-1
+    usage_str = dedent(
+    """
+    python ball_track.py 
+        process all frames        
+    python ball_track.py n0 n1
+        track frames in [n0, n1)
+    python ball_track.py n0 n1 j
+        track frames in [n0, n1) using jobs threads
+    """)
+    try:
+        if argc == 0:
+            n0 = 0
+            n1 = frame_count
+            jobs = 1
+        elif argc == 1:
+            n0 = 0
+            n1 = frame_count
+            jobs = int(argv[1])
+        elif argc == 2:
+            n0 = int(argv[1])
+            n1 = int(argv[2])
+            jobs = 1
+        elif argc == 3:
+            n0 = int(argv[1])
+            n1 = int(argv[2])
+            jobs = int(argv[3])
+        else:
+            raise RuntimeError
+    except:
+        print(f'Error in arguments for make_tableaux.py.  argc={argc}, argv={argv}.')
+        print(usage_str)
+        exit()
+    print(f'Processing frames from {n0} to {n1} on {jobs} threads.')
+    
+    # Split up the frames for apportionment to different threads
+    frame_nums = list(range(n0, n1))
+    job_tbl = dict()
+    for k in range(jobs):
+        job_tbl[k] = [n for n in frame_nums if n % jobs == k]
+        
+    # List of arguments for parallel job
+    args = [(job_tbl[jn], jn == 1) for jn in range(jobs)]
+    
+    # Run these jobs in parallel if jobs > 1
+    if jobs > 1:
+        Parallel(n_jobs=jobs, prefer='threads')(
+                delayed(track_frames)(frame_nums, progress_bar)
+                for frame_nums, progress_bar in args)
+    # Otherwise run this single threaded
+    else:
+        track_frames(frame_nums, True)
 
-# Build 7x3 matrix of camera positions and array of 7 zooms
-cam_pos_mat = np.zeros((7,3))
-zooms = np.zeros(7)
-for i, camera_name in enumerate(camera_names):
-    cam_pos_mat[i, :] = cam_pos_tbl[camera_name]
-    zooms[i] = zoom_tbl[camera_name]
-
-# Weights on the cameras
-weight = np.ones(camera_count)
-
-# Dataframe of learned ball positions
-ball_pos_df = pd.DataFrame(columns=['n', 't', 'x', 'y', 'z', 'mask'])
-
-# start of shot
-n0 = 2394
-# end of shot
-n1 = n0 + 60
-
-# Track these frames
-track_frames(n0, n1)
+if __name__ == '__main__':
+    main()

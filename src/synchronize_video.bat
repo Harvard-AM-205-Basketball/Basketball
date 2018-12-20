@@ -45,5 +45,6 @@ ffmpeg -i Camera8_sync_video.mp4 -i Camera8_sync.wav -c:v copy Camera8_sync.mp4
 REM Assemble the tableau frames into new mp4 stream with video only
 cd D:\Dropbox\Harvard-AM-205-Basketball\Video\12_Tableau
 rem ffmpeg -r 30 -f image2 -s 3840x3240 -i Tableau%05d.png -vcodec libx264 -crf 20 -pix_fmt yuv420p Tableau_video.mp4
+rem ffmpeg -r 30 -f image2 -s 3840x3240 -i Tableau%05d.png -vcodec libx264 -b:v 64k -crf 20 -pix_fmt yuv420p Tableau_video.mp4
 ffmpeg -r 30 -f image2 -s 3840x3240 -i Tableau%05d.png -vcodec libx264 -b:v 64k -maxrate 128K -bufsize 128M -crf 20 -pix_fmt yuv420p Tableau_video.mp4
 ffmpeg -i Tableau_video.mp4 -i Camera2_sync.wav -i Camera3_sync.wav -i Camera4_sync.wav -i Camera6_sync.wav -i Camera7_sync.wav -c:v copy Tableau.mp4
