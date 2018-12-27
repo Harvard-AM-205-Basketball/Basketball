@@ -11,8 +11,8 @@ ffmpeg -r 30 -f image2 -s 1920x1080 -i Camera2/Camera2_BallFrame%05d.png -vcodec
 ffmpeg -r 30 -f image2 -s 1920x1080 -i Camera3/Camera3_BallFrame%05d.png -vcodec libx264 -crf 20 -pix_fmt yuv420p Camera3_ball_video.mp4
 ffmpeg -r 30 -f image2 -s 1920x1080 -i Camera4/Camera4_BallFrame%05d.png -vcodec libx264 -crf 20 -pix_fmt yuv420p Camera4_ball_video.mp4
 ffmpeg -r 30 -f image2 -s 1920x1080 -i Camera6/Camera6_BallFrame%05d.png -vcodec libx264 -crf 20 -pix_fmt yuv420p Camera6_ball_video.mp4
-ffmpeg -r 30 -f image2 -s 1920x1080 -i Camera7/Camera8_BallFrame%05d.png -vcodec libx264 -crf 20 -pix_fmt yuv420p Camera7_ball_video.mp4
-ffmpeg -r 30 -f image2 -s 1920x1080 -i Camera8/Camera9_BallFrame%05d.png -vcodec libx264 -crf 20 -pix_fmt yuv420p Camera8_ball_video.mp4
+ffmpeg -r 30 -f image2 -s 1920x1080 -i Camera7/Camera7_BallFrame%05d.png -vcodec libx264 -crf 20 -pix_fmt yuv420p Camera7_ball_video.mp4
+ffmpeg -r 30 -f image2 -s 1920x1080 -i Camera8/Camera8_BallFrame%05d.png -vcodec libx264 -crf 20 -pix_fmt yuv420p Camera8_ball_video.mp4
 
 REM add audio to these mp4 streams
 ffmpeg -i Camera1_ball_video.mp4 -i Camera1_sync.wav -c:v copy Camera1_ball.mp4
