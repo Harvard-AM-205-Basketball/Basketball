@@ -26,6 +26,9 @@ calculations/Archive
 *.out
 *.gz
 
+# Ignore the main PDF output because it is too big for GitHub due to image files
+report/Basketball\ Motion\ Capture.pdf
+
 # throwaway python experiments
 scratch.py
 
